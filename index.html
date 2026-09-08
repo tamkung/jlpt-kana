@@ -133,13 +133,17 @@
           </button>
         </nav>
 
-        <!-- Right Quick Controls (Voice Audio Test) -->
+        <!-- Right Quick Controls (Voice Audio Test & Settings) -->
         <div class="flex items-center gap-2 flex-shrink-0">
           <button onclick="testSpeechAudio()" title="ทดสอบเสียงพูดสังเคราะห์" class="px-3.5 py-2 rounded-xl border border-sumi-200 text-sumi-600 hover:text-sakura-600 hover:border-sakura-300 hover:bg-sakura-50 transition-all flex items-center gap-1.5 text-xs font-thai font-medium whitespace-nowrap shadow-sm">
             <svg class="w-4 h-4 text-sakura-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
             </svg>
             <span class="hidden sm:inline">ทดสอบเสียง</span>
+          </button>
+          <button id="btn-open-settings" onclick="openSettingsModal()" title="ตั้งค่าระบบ (ฟอนต์, ขนาดตัวอักษร, เสียง)" class="px-3.5 py-2 rounded-xl border border-sakura-200 bg-white hover:bg-sakura-50 text-sumi-700 hover:text-sakura-600 hover:border-sakura-300 transition-all flex items-center gap-1.5 text-xs font-thai font-semibold whitespace-nowrap shadow-sm">
+            <span class="text-sm">⚙️</span>
+            <span>ตั้งค่า</span>
           </button>
         </div>
 
@@ -155,6 +159,7 @@
       <button onclick="switchTab('quiz')" id="m-nav-quiz" class="mobile-nav-tab px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap text-sumi-600 bg-sumi-100">⚡ สปีดควิซ</button>
       <button onclick="switchTab('vocab')" id="m-nav-vocab" class="mobile-nav-tab px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap text-sumi-600 bg-sumi-100">📖 คลังศัพท์</button>
       <button onclick="switchTab('roadmap')" id="m-nav-roadmap" class="mobile-nav-tab px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap text-sumi-600 bg-sumi-100">🗺️ แผน 4 สัปดาห์</button>
+      <button onclick="openSettingsModal()" id="m-nav-settings" class="mobile-nav-tab px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap text-sumi-700 bg-sakura-50 border border-sakura-200">⚙️ ตั้งค่า</button>
     </div>
   </header>
 
@@ -182,13 +187,16 @@
             </p>
           </div>
 
-          <!-- Kana Type Switcher (Hiragana vs Katakana) -->
-          <div class="flex bg-sumi-100 p-1.5 rounded-2xl self-start lg:self-center shadow-inner">
-            <button onclick="setKanaType('hiragana')" id="kana-type-hira" class="px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm bg-white text-sakura-600">
+          <!-- Kana Type Switcher (Hiragana vs Katakana vs Kanji N5) -->
+          <div class="flex bg-sumi-100 p-1.5 rounded-2xl self-start lg:self-center shadow-inner flex-wrap gap-1">
+            <button onclick="setKanaType('hiragana')" id="kana-type-hira" class="px-4 py-2 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-sm bg-white text-sakura-600">
               ฮิรางานะ (Hiragana)
             </button>
-            <button onclick="setKanaType('katakana')" id="kana-type-kata" class="px-5 py-2.5 rounded-xl font-medium text-sm transition-all text-sumi-600 hover:text-sumi-900">
+            <button onclick="setKanaType('katakana')" id="kana-type-kata" class="px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition-all text-sumi-600 hover:text-sumi-900">
               คาตาคานะ (Katakana)
+            </button>
+            <button onclick="setKanaType('kanji')" id="kana-type-kanji" class="px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition-all text-sumi-600 hover:text-indigo-600">
+              🈸 คันจิ N5 (103 ตัว)
             </button>
           </div>
         </div>
@@ -196,7 +204,7 @@
         <!-- Subgroup Filters & Search Bar -->
         <div class="mt-6 pt-6 border-t border-sumi-200/60 flex flex-col sm:flex-row items-center justify-between gap-4">
           <!-- Filter Buttons -->
-          <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+          <div id="kana-filter-buttons-container" class="flex flex-wrap gap-2 w-full sm:w-auto">
             <button onclick="setKanaGroup('basic')" id="kg-basic" class="kg-filter px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-sakura-600 text-white shadow-sm transition-all whitespace-nowrap">
               เสียงพื้นฐาน 46 (Seion)
             </button>
@@ -275,10 +283,11 @@
 
           <!-- Quick Character Switcher & Progress -->
           <div class="flex flex-wrap items-center gap-2">
-            <!-- Kana Type Toggle -->
+            <!-- Kana/Kanji Type Toggle -->
             <div class="flex bg-sumi-100 p-1 rounded-xl">
               <button onclick="setStrokeKanaType('hiragana')" id="stroke-type-hira" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-sakura-600 shadow-sm transition-all">ฮิรางานะ</button>
               <button onclick="setStrokeKanaType('katakana')" id="stroke-type-kata" class="px-3 py-1.5 rounded-lg text-xs font-medium text-sumi-600 hover:text-sumi-900 transition-all">คาตาคานะ</button>
+              <button onclick="setStrokeKanaType('kanji')" id="stroke-type-kanji" class="px-3 py-1.5 rounded-lg text-xs font-medium text-sumi-600 hover:text-indigo-600 transition-all">🈸 คันจิ N5</button>
             </div>
 
             <!-- Group Selector -->
@@ -426,12 +435,14 @@
               <div>
                 <span class="text-xs font-bold text-sakura-600 font-thai uppercase tracking-wider">ข้อมูลตัวอักษร</span>
                 <div class="flex items-baseline gap-3 mt-1">
-                  <span id="char-display-large" class="font-jp font-black text-5xl sm:text-6xl text-sumi-900 leading-none">あ</span>
+                  <span id="char-display-large" class="font-jp font-jp-scale font-black text-5xl sm:text-6xl text-sumi-900 leading-none">あ</span>
                   <div>
                     <div id="char-romaji-large" class="text-2xl font-bold text-sumi-800 tracking-tight font-mono">a</div>
                     <div id="char-thai-large" class="text-sm font-semibold text-sakura-600 font-thai">อะ (เสียงสั้น)</div>
                   </div>
                 </div>
+                <!-- Kanji Specific Readings & Badges -->
+                <div id="char-kanji-badges" class="hidden"></div>
               </div>
 
               <!-- Pronounce Audio Button -->
@@ -1255,6 +1266,200 @@
     </section>
 
   </main>
+
+  <!-- ========================================================================= -->
+  <!-- SETTINGS MODAL (Font Switcher, Size Scale, Audio & Reading Display) -->
+  <!-- ========================================================================= -->
+  <div id="settings-modal" class="hidden fixed inset-0 z-50 bg-sumi-950/60 backdrop-blur-sm items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full max-h-[92vh] flex flex-col shadow-float border border-sakura-100 overflow-hidden animation-pop">
+      
+      <!-- Modal Header -->
+      <div class="px-5 sm:px-6 py-4 border-b border-sumi-100 flex items-center justify-between bg-gradient-to-r from-sakura-50/60 via-white to-matcha-50/40">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-sakura-100 text-sakura-600 flex items-center justify-center text-lg shadow-sm">
+            ⚙️
+          </div>
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-sumi-900 font-thai">การตั้งค่าระบบ (Settings)</h2>
+            <p class="text-[11px] text-sumi-500 font-thai">ปรับแต่งฟอนต์ ขนาดตัวอักษร ระดับเสียง และการแสดงผลคำอ่าน</p>
+          </div>
+        </div>
+        <button onclick="closeSettingsModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-sumi-400 hover:text-sumi-700 hover:bg-sumi-100 transition-colors" title="ปิดหน้าต่าง">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="overflow-y-auto p-5 sm:p-6 space-y-6 text-sumi-800">
+
+        <!-- 1. Font Family Selector -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-xs sm:text-sm font-bold text-sumi-900 font-thai flex items-center gap-1.5">
+              <span>🔤</span>
+              <span>รูปแบบฟอนต์ภาษาญี่ปุ่น (Japanese Font Family)</span>
+            </label>
+            <span class="text-[10px] text-sakura-600 font-thai font-medium">เปลี่ยนทันทีทั้งแอพ</span>
+          </div>
+
+          <!-- Live Font Preview Box -->
+          <div id="setting-font-live-preview" class="p-3 mb-3 bg-sakura-50/60 rounded-2xl border border-sakura-200 text-center font-jp text-base sm:text-lg font-bold text-sumi-800 transition-all select-none">
+            あいうえお • 漢字 日本語 (JLPT N5)
+          </div>
+
+          <!-- 4 Font Choices Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <!-- Zen Maru Gothic -->
+            <div onclick="setSettingFontFamily('zenmaru')" data-font="zenmaru" class="setting-font-card p-3 rounded-2xl border border-sumi-200 hover:border-sakura-300 bg-white cursor-pointer transition-all flex items-center justify-between">
+              <div>
+                <div class="font-bold text-xs text-sumi-900 font-thai">Zen Maru Gothic</div>
+                <div class="text-[10px] text-sumi-500 font-thai">ทรงกลมมน นุ่มนวล สไตล์มินิมอล (ค่าเริ่มต้น)</div>
+              </div>
+              <span style="font-family: 'Zen Maru Gothic', sans-serif;" class="text-xl font-bold text-sakura-600 flex-shrink-0 ml-2">桜</span>
+            </div>
+
+            <!-- Noto Sans JP -->
+            <div onclick="setSettingFontFamily('notosans')" data-font="notosans" class="setting-font-card p-3 rounded-2xl border border-sumi-200 hover:border-sakura-300 bg-white cursor-pointer transition-all flex items-center justify-between">
+              <div>
+                <div class="font-bold text-xs text-sumi-900 font-thai">Noto Sans JP</div>
+                <div class="text-[10px] text-sumi-500 font-thai">เส้นตรง คมชัด ทันสมัย อ่านง่าย</div>
+              </div>
+              <span style="font-family: 'Noto Sans JP', sans-serif;" class="text-xl font-bold text-sakura-600 flex-shrink-0 ml-2">桜</span>
+            </div>
+
+            <!-- Noto Serif JP -->
+            <div onclick="setSettingFontFamily('notoserif')" data-font="notoserif" class="setting-font-card p-3 rounded-2xl border border-sumi-200 hover:border-sakura-300 bg-white cursor-pointer transition-all flex items-center justify-between">
+              <div>
+                <div class="font-bold text-xs text-sumi-900 font-thai">Noto Serif JP</div>
+                <div class="text-[10px] text-sumi-500 font-thai">หัวพู่กัน หรูหรา วรรณกรรม คลาสสิก</div>
+              </div>
+              <span style="font-family: 'Noto Serif JP', serif;" class="text-xl font-bold text-sakura-600 flex-shrink-0 ml-2">桜</span>
+            </div>
+
+            <!-- Klee One -->
+            <div onclick="setSettingFontFamily('kleeone')" data-font="kleeone" class="setting-font-card p-3 rounded-2xl border border-sumi-200 hover:border-sakura-300 bg-white cursor-pointer transition-all flex items-center justify-between">
+              <div>
+                <div class="font-bold text-xs text-sumi-900 font-thai">Klee One</div>
+                <div class="text-[10px] text-sumi-500 font-thai">ลายมือเขียนดินสอ นุ่มนวล เสมือนจริง</div>
+              </div>
+              <span style="font-family: 'Klee One', cursive;" class="text-xl font-bold text-sakura-600 flex-shrink-0 ml-2">桜</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Font Size Scaler -->
+        <div>
+          <label class="text-xs sm:text-sm font-bold text-sumi-900 font-thai flex items-center gap-1.5 mb-2">
+            <span>🔍</span>
+            <span>ขนาดตัวอักษรคันจิและคานะ (Font Size Scale)</span>
+          </label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-sumi-100 p-1.5 rounded-2xl">
+            <button onclick="setSettingFontSize('compact')" data-scale="compact" class="setting-scale-btn py-2 px-2.5 rounded-xl text-xs font-semibold font-thai transition-all text-center">
+              <div>กะทัดรัด</div>
+              <div class="text-[10px] opacity-75 font-mono">90%</div>
+            </button>
+            <button onclick="setSettingFontSize('normal')" data-scale="normal" class="setting-scale-btn py-2 px-2.5 rounded-xl text-xs font-semibold font-thai transition-all text-center">
+              <div>ปกติ (แนะนำ)</div>
+              <div class="text-[10px] opacity-75 font-mono">100%</div>
+            </button>
+            <button onclick="setSettingFontSize('large')" data-scale="large" class="setting-scale-btn py-2 px-2.5 rounded-xl text-xs font-semibold font-thai transition-all text-center">
+              <div>ขนาดใหญ่</div>
+              <div class="text-[10px] opacity-75 font-mono">115%</div>
+            </button>
+            <button onclick="setSettingFontSize('xlarge')" data-scale="xlarge" class="setting-scale-btn py-2 px-2.5 rounded-xl text-xs font-semibold font-thai transition-all text-center">
+              <div>ใหญ่พิเศษ</div>
+              <div class="text-[10px] opacity-75 font-mono">130%</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. Audio & Speech Settings -->
+        <div class="p-4 rounded-2xl bg-sumi-50/90 border border-sumi-200/80 space-y-3.5">
+          <div class="flex items-center justify-between">
+            <label class="text-xs sm:text-sm font-bold text-sumi-900 font-thai flex items-center gap-1.5">
+              <span>🔊</span>
+              <span>ระดับเสียงและความเร็วในการพูด (Speech Audio)</span>
+            </label>
+            <button onclick="testSpeechAudio()" class="px-2.5 py-1 rounded-lg bg-sakura-50 hover:bg-sakura-100 text-sakura-700 text-xs font-thai font-semibold border border-sakura-200 flex items-center gap-1 transition-colors">
+              <span>🔊 ทดสอบ</span>
+            </button>
+          </div>
+
+          <!-- Volume Slider -->
+          <div class="space-y-1">
+            <div class="flex items-center justify-between text-xs font-thai">
+              <span class="text-sumi-600 font-medium">ระดับเสียง (Volume)</span>
+              <span id="setting-volume-val" class="font-mono font-bold text-sakura-600">100%</span>
+            </div>
+            <input id="setting-volume" type="range" min="0" max="100" value="100" oninput="setSettingVolume(this.value)" class="w-full h-2 bg-sumi-200 rounded-lg appearance-none cursor-pointer accent-sakura-500">
+          </div>
+
+          <!-- Speech Rate Slider -->
+          <div class="space-y-1">
+            <div class="flex items-center justify-between text-xs font-thai">
+              <span class="text-sumi-600 font-medium">ความเร็วการออกเสียง (Speech Rate)</span>
+              <span id="setting-rate-val" class="font-mono font-bold text-sakura-600">0.85x</span>
+            </div>
+            <input id="setting-rate" type="range" min="0.6" max="1.4" step="0.05" value="0.85" oninput="setSettingRate(this.value)" class="w-full h-2 bg-sumi-200 rounded-lg appearance-none cursor-pointer accent-sakura-500">
+            <div class="flex justify-between text-[10px] text-sumi-400 font-thai">
+              <span>0.6x (ช้า ฟังชัด)</span>
+              <span>1.0x (ปกติ)</span>
+              <span>1.4x (เร็ว)</span>
+            </div>
+          </div>
+
+          <!-- Speech Pitch Slider -->
+          <div class="space-y-1">
+            <div class="flex items-center justify-between text-xs font-thai">
+              <span class="text-sumi-600 font-medium">ระดับเสียงสูง-ต่ำ (Pitch)</span>
+              <span id="setting-pitch-val" class="font-mono font-bold text-sakura-600">1.05</span>
+            </div>
+            <input id="setting-pitch" type="range" min="0.8" max="1.2" step="0.05" value="1.05" oninput="setSettingPitch(this.value)" class="w-full h-2 bg-sumi-200 rounded-lg appearance-none cursor-pointer accent-sakura-500">
+          </div>
+        </div>
+
+        <!-- 4. Reading Display Visibility Options -->
+        <div class="space-y-2.5">
+          <label class="text-xs sm:text-sm font-bold text-sumi-900 font-thai flex items-center gap-1.5">
+            <span>👁️</span>
+            <span>การแสดงผลคำอ่าน (Reading Visibility)</span>
+          </label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <!-- Thai Reading Toggle -->
+            <label class="p-3 rounded-2xl border border-sumi-200 hover:border-sakura-200 bg-white flex items-center justify-between cursor-pointer transition-colors">
+              <div class="pr-2">
+                <div class="text-xs font-bold text-sumi-800 font-thai">แสดงคำอ่านภาษาไทย</div>
+                <div class="text-[10px] text-sumi-500 font-thai">แสดง [คำอ่านไทย] สำหรับมือใหม่</div>
+              </div>
+              <input id="setting-toggle-thai" type="checkbox" checked onchange="toggleSettingThaiReading(this.checked)" class="w-4 h-4 text-sakura-600 rounded focus:ring-sakura-400 accent-sakura-500">
+            </label>
+
+            <!-- Romaji Reading Toggle -->
+            <label class="p-3 rounded-2xl border border-sumi-200 hover:border-sakura-200 bg-white flex items-center justify-between cursor-pointer transition-colors">
+              <div class="pr-2">
+                <div class="text-xs font-bold text-sumi-800 font-thai">แสดงคำอ่านโรมาจิ</div>
+                <div class="text-[10px] text-sumi-500 font-thai">แสดงตัวสะกดภาษาอังกฤษ Romaji</div>
+              </div>
+              <input id="setting-toggle-romaji" type="checkbox" checked onchange="toggleSettingRomajiReading(this.checked)" class="w-4 h-4 text-sakura-600 rounded focus:ring-sakura-400 accent-sakura-500">
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-5 sm:px-6 py-3.5 border-t border-sumi-100 bg-sumi-50/60 flex items-center justify-between gap-3">
+        <button onclick="resetSettingsToDefault()" class="px-3.5 py-2 rounded-xl border border-sumi-200 hover:border-sumi-300 text-sumi-600 hover:text-sumi-800 text-xs font-thai font-medium flex items-center gap-1.5 transition-colors">
+          <span>🔄</span>
+          <span>คืนค่าเริ่มต้น</span>
+        </button>
+        <button onclick="closeSettingsModal()" class="px-5 py-2 rounded-xl bg-sakura-600 hover:bg-sakura-700 text-white text-xs font-thai font-bold shadow-md shadow-sakura-500/20 transition-all">
+          <span>✅ บันทึกและปิด</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   <!-- Global Audio Notification Toast -->
   <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none px-4 py-2.5 rounded-2xl bg-sumi-900 text-white text-xs font-thai shadow-float flex items-center gap-2">

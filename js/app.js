@@ -12,6 +12,15 @@ const APP_STATE = {
   kanaType: 'hiragana',      // 'hiragana' | 'katakana'
   kanaGroup: 'basic',        // 'basic' | 'dakuon' | 'yoon' | 'tokushuon'
   chartViewMode: 'table',    // 'table' (Gojūon 五十音図) | 'grid' (Card Grid)
+  settings: {
+    fontFamily: 'zenmaru',
+    fontSizeScale: 'normal',
+    volume: 1.0,
+    speechRate: 0.85,
+    speechPitch: 1.05,
+    showThaiReading: true,
+    showRomajiReading: true
+  },
   djt: {
     selectedRows: new Set(['hira_a', 'hira_ka', 'hira_sa', 'hira_ta', 'hira_na', 'hira_ha', 'hira_ma', 'hira_ya', 'hira_ra', 'hira_wa', 'hira_n']),
     pool: [],
@@ -96,9 +105,10 @@ function playTone(freq = 520, type = 'sine', duration = 0.15) {
     if (!ctx) return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
+    const vol = APP_STATE.settings?.volume ?? 1.0;
     osc.type = type;
     osc.frequency.setValueAtTime(freq, ctx.currentTime);
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.setValueAtTime(0.15 * vol, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
     osc.connect(gain);
     gain.connect(ctx.destination);
@@ -128,8 +138,9 @@ function speakJapanese(text, onStartCallback = null) {
 
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = 'ja-JP';
-  utterance.rate = 0.85;
-  utterance.pitch = 1.05;
+  utterance.rate = APP_STATE.settings?.speechRate ?? 0.85;
+  utterance.pitch = APP_STATE.settings?.speechPitch ?? 1.05;
+  utterance.volume = APP_STATE.settings?.volume ?? 1.0;
 
   const voices = window.speechSynthesis.getVoices();
   const jaVoice = voices.find(v => v.lang === 'ja-JP' || v.lang.startsWith('ja'));
@@ -228,20 +239,71 @@ function setKanaType(type) {
   APP_STATE.kanaType = type;
   const btnHira = document.getElementById('kana-type-hira');
   const btnKata = document.getElementById('kana-type-kata');
-  const tokushuonBtn = document.getElementById('kg-tokushuon');
+  const btnKanji = document.getElementById('kana-type-kanji');
+  const viewSwitcher = document.getElementById('view-mode-table')?.parentElement;
 
   if (type === 'hiragana') {
-    btnHira.className = 'px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm bg-white text-sakura-600';
-    btnKata.className = 'px-5 py-2.5 rounded-xl font-medium text-sm transition-all text-sumi-600 hover:text-sumi-900';
-    if (tokushuonBtn) tokushuonBtn.style.display = 'none';
-    if (APP_STATE.kanaGroup === 'tokushuon') APP_STATE.kanaGroup = 'basic';
-  } else {
-    btnKata.className = 'px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm bg-white text-sakura-600';
-    btnHira.className = 'px-5 py-2.5 rounded-xl font-medium text-sm transition-all text-sumi-600 hover:text-sumi-900';
-    if (tokushuonBtn) tokushuonBtn.style.display = 'inline-block';
+    if (btnHira) btnHira.className = 'px-4 py-2 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-sm bg-white text-sakura-600';
+    if (btnKata) btnKata.className = 'px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition-all text-sumi-600 hover:text-sumi-900';
+    if (btnKanji) btnKanji.className = 'px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition-all text-sumi-600 hover:text-indigo-600';
+    if (viewSwitcher) viewSwitcher.style.display = 'inline-flex';
+    APP_STATE.kanaGroup = 'basic';
+    renderKanaFilterButtons('kana');
+  } else if (type === 'katakana') {
+    if (btnKata) btnKata.className = 'px-4 py-2 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-sm bg-white text-sakura-600';
+    if (btnHira) btnHira.className = 'px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition-all text-sumi-600 hover:text-sumi-900';
+    if (btnKanji) btnKanji.className = 'px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition-all text-sumi-600 hover:text-indigo-600';
+    if (viewSwitcher) viewSwitcher.style.display = 'inline-flex';
+    APP_STATE.kanaGroup = 'basic';
+    renderKanaFilterButtons('kana');
+  } else if (type === 'kanji') {
+    if (btnKanji) btnKanji.className = 'px-4 py-2 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-sm bg-white text-sakura-600';
+    if (btnHira) btnHira.className = 'px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition-all text-sumi-600 hover:text-sumi-900';
+    if (btnKata) btnKata.className = 'px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition-all text-sumi-600 hover:text-sumi-900';
+    if (viewSwitcher) viewSwitcher.style.display = 'none';
+    APP_STATE.kanaGroup = 'all';
+    renderKanaFilterButtons('kanji');
   }
   updateKanaFilterButtons();
   renderKanaGrid();
+}
+
+function renderKanaFilterButtons(mode) {
+  const container = document.getElementById('kana-filter-buttons-container');
+  if (!container) return;
+
+  if (mode === 'kanji') {
+    const categories = (typeof N5_KANJI_DATA !== 'undefined') ? N5_KANJI_DATA.categories : [];
+    let html = '';
+    categories.forEach(cat => {
+      const isSelected = (APP_STATE.kanaGroup === cat.id) || (cat.id === 'all' && (!APP_STATE.kanaGroup || APP_STATE.kanaGroup === 'all'));
+      const cls = isSelected
+        ? 'kg-filter px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-sakura-600 text-white shadow-sm transition-all whitespace-nowrap'
+        : 'kg-filter px-3.5 py-1.5 rounded-xl text-xs font-medium bg-white text-sumi-600 border border-sumi-200 hover:bg-sumi-50 transition-all whitespace-nowrap';
+      html += `
+        <button onclick="setKanaGroup('${cat.id}')" id="kg-${cat.id}" class="${cls}">
+          ${cat.icon ? cat.icon + ' ' : ''}${cat.name}
+        </button>
+      `;
+    });
+    container.innerHTML = html;
+  } else {
+    const isKata = APP_STATE.kanaType === 'katakana';
+    container.innerHTML = `
+      <button onclick="setKanaGroup('basic')" id="kg-basic" class="kg-filter px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-sakura-600 text-white shadow-sm transition-all whitespace-nowrap">
+        เสียงพื้นฐาน 46 (Seion)
+      </button>
+      <button onclick="setKanaGroup('dakuon')" id="kg-dakuon" class="kg-filter px-3.5 py-1.5 rounded-xl text-xs font-medium bg-white text-sumi-600 border border-sumi-200 hover:bg-sumi-50 transition-all whitespace-nowrap">
+        เสียงขุ่น (Dakuon/Handakuon)
+      </button>
+      <button onclick="setKanaGroup('yoon')" id="kg-yoon" class="kg-filter px-3.5 py-1.5 rounded-xl text-xs font-medium bg-white text-sumi-600 border border-sumi-200 hover:bg-sumi-50 transition-all whitespace-nowrap">
+        เสียงควบ (Yōon)
+      </button>
+      <button onclick="setKanaGroup('tokushuon')" id="kg-tokushuon" style="display: ${isKata ? 'inline-block' : 'none'};" class="kg-filter px-3.5 py-1.5 rounded-xl text-xs font-medium bg-white text-sumi-600 border border-sumi-200 hover:bg-sumi-50 transition-all whitespace-nowrap">
+        เสียงพิเศษ (Tokushuon)
+      </button>
+    `;
+  }
 }
 
 function setKanaGroup(group) {
@@ -254,7 +316,8 @@ function updateKanaFilterButtons() {
   document.querySelectorAll('.kg-filter').forEach(btn => {
     btn.className = 'kg-filter px-3.5 py-1.5 rounded-xl text-xs font-medium bg-white text-sumi-600 border border-sumi-200 hover:bg-sumi-50 transition-all whitespace-nowrap';
   });
-  const activeBtn = document.getElementById(`kg-${APP_STATE.kanaGroup}`);
+  const curGroup = (APP_STATE.kanaType === 'kanji' && (!APP_STATE.kanaGroup || APP_STATE.kanaGroup === 'all')) ? 'all' : APP_STATE.kanaGroup;
+  const activeBtn = document.getElementById(`kg-${curGroup}`);
   if (activeBtn) {
     activeBtn.className = 'kg-filter px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-sakura-600 text-white shadow-sm transition-all whitespace-nowrap';
   }
@@ -276,6 +339,113 @@ function setKanaViewMode(mode) {
   renderKanaGrid();
 }
 
+function renderKanjiCard(item) {
+  if (!item) return '';
+  const onyomiStr = item.on || (Array.isArray(item.onyomi) ? item.onyomi.join(', ') : item.onyomi) || '-';
+  const kunyomiStr = item.kun || (Array.isArray(item.kunyomi) ? item.kunyomi.join(', ') : item.kunyomi) || '—';
+  const onyomiR = item.on_r || '-';
+  const onyomiTh = item.on_th || '-';
+  const kunyomiR = item.kun_r || '-';
+  const kunyomiTh = item.kun_th || '-';
+
+  const sample = item.sample || {};
+  const sampleJp = sample.jp || item.k;
+  const sampleKana = sample.kana || sample.r || '';
+  const sampleR = sample.r || '';
+  const sampleThRead = sample.th_read || '';
+  const sampleTh = sample.th || item.th;
+
+  // Primary reading: show first Onyomi and Kunyomi with Romaji & Thai
+  const onFirst = item.on ? item.on.split(/[,、]/)[0].trim() : '';
+  const kunFirst = item.kun ? item.kun.split(/[,、]/)[0].trim() : '';
+  const primaryReading = [onFirst, kunFirst].filter(Boolean).join(' / ');
+
+  const onRFirst = item.on_r ? item.on_r.split(/[,、]/)[0].trim() : '';
+  const kunRFirst = item.kun_r ? item.kun_r.split(/[,、]/)[0].trim() : '';
+  const primaryR = [onRFirst, kunRFirst].filter(Boolean).join(' / ');
+
+  const onThFirst = item.on_th ? item.on_th.split(/[,、]/)[0].trim() : '';
+  const kunThFirst = item.kun_th ? item.kun_th.split(/[,、]/)[0].trim() : '';
+  const primaryTh = [onThFirst, kunThFirst].filter(Boolean).join(' / ');
+
+  return `
+    <div class="group relative bg-white hover:bg-gradient-to-b hover:from-white hover:to-sakura-50/40 rounded-2xl p-3.5 sm:p-4 border border-sumi-200 hover:border-sakura-300 hover:shadow-card transition-all duration-200 flex flex-col justify-between cursor-pointer" onclick="speakJapanese('${item.k}')">
+      <!-- Top meta: strokes count & sound -->
+      <div class="flex items-center justify-between text-xs mb-1">
+        <span class="px-2 py-0.5 rounded-md bg-sumi-100 text-[10px] font-mono font-bold text-sumi-600 tracking-wide">${item.strokes} ขีด</span>
+        <button onclick="event.stopPropagation(); speakJapanese('${item.k}')" title="ฟังเสียงอ่าน" class="w-6 h-6 rounded-full flex items-center justify-center text-sumi-400 hover:text-sakura-600 hover:bg-sakura-100 transition-colors">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+        </button>
+      </div>
+
+      <!-- Main Kanji Character & Pronunciation -->
+      <div class="py-1 text-center">
+        <div class="font-jp font-jp-scale font-black text-4xl sm:text-5xl text-sumi-900 group-hover:scale-105 group-hover:text-sakura-700 transition-all duration-200 select-none">
+          ${item.k}
+        </div>
+        <div class="text-[11px] font-jp font-bold text-sakura-700 mt-1 tracking-wide" title="คำอ่านเสียงอง / เสียงคุง">
+          ${primaryReading || ''}
+        </div>
+        <div class="flex items-center justify-center gap-1.5 text-[10px] text-sumi-500 flex-wrap mt-0.5">
+          ${primaryR ? `<span class="reading-romaji font-mono font-medium">${primaryR}</span>` : ''}
+          ${primaryTh ? `<span class="reading-th font-thai font-semibold text-sakura-600">[${primaryTh}]</span>` : ''}
+        </div>
+        <div class="text-xs font-thai font-bold text-sumi-800 line-clamp-1 mt-0.5" title="${item.th}">
+          ${item.th}
+        </div>
+      </div>
+
+      <!-- Readings (Onyomi & Kunyomi) with Kana + Romaji + Thai -->
+      <div class="my-2 p-2 rounded-xl bg-sumi-50/80 border border-sumi-100 text-[11px] space-y-2">
+        <!-- Onyomi -->
+        <div class="space-y-0.5" title="เสียงอง (Onyomi) - เสียงอ่านแบบจีน มักใช้ในคำประสม">
+          <div class="flex items-center gap-1.5">
+            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-thai flex items-center gap-1 flex-shrink-0">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>เสียงอง
+            </span>
+            <span class="font-jp font-bold text-rose-900 truncate" title="${onyomiStr}">${onyomiStr}</span>
+          </div>
+          <div class="pl-1 text-[10px] text-sumi-500 flex items-center gap-1.5 flex-wrap">
+            <span class="reading-romaji font-mono text-sumi-500">${onyomiR}</span>
+            <span class="reading-th font-thai text-rose-600 font-semibold">[${onyomiTh}]</span>
+          </div>
+        </div>
+
+        <!-- Kunyomi -->
+        <div class="space-y-0.5 pt-1 border-t border-sumi-200/50" title="เสียงคุง (Kunyomi) - เสียงอ่านแบบญี่ปุ่นแท้ มักใช้เดี่ยวๆ">
+          <div class="flex items-center gap-1.5">
+            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-thai flex items-center gap-1 flex-shrink-0">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>เสียงคุง
+            </span>
+            <span class="font-jp font-bold text-emerald-900 truncate" title="${kunyomiStr}">${kunyomiStr}</span>
+          </div>
+          <div class="pl-1 text-[10px] text-sumi-500 flex items-center gap-1.5 flex-wrap">
+            <span class="reading-romaji font-mono text-sumi-500">${kunyomiR}</span>
+            <span class="reading-th font-thai text-emerald-600 font-semibold">[${kunyomiTh}]</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sample word & Practice jump button -->
+      <div class="pt-2 border-t border-sumi-100 flex items-center justify-between gap-1 text-[10px] sm:text-[11px] font-thai">
+        <div class="text-sumi-600 truncate min-w-0 pr-1">
+          <div class="truncate">
+            例: <span class="font-jp font-bold text-sumi-800">${sampleJp}</span> <span class="text-[10px] text-sumi-400">(${sampleKana})</span>
+          </div>
+          <div class="text-[10px] text-sumi-500 truncate flex items-center gap-1 flex-wrap">
+            <span class="reading-romaji font-mono text-[9px] text-sumi-400">${sampleR}</span>
+            ${sampleThRead ? `<span class="reading-th text-torii font-medium">[${sampleThRead}]</span>` : ''}
+            <span class="text-sumi-600">• ${sampleTh}</span>
+          </div>
+        </div>
+        <button onclick="event.stopPropagation(); jumpToStrokePractice('${item.k}', 'kanji', '${item.cat}')" class="font-bold text-torii hover:text-torii/80 flex items-center gap-0.5 transition-colors whitespace-nowrap bg-rose-50 hover:bg-rose-100 px-2 py-1 rounded-lg border border-rose-200/60 flex-shrink-0">
+          <span>🖌️ คัด</span>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 function renderKanaCard(item, isTableCell = false) {
   if (!item) {
     return `<div class="gojuon-empty-cell"><span class="text-sumi-300 font-mono text-sm">—</span></div>`;
@@ -283,16 +453,16 @@ function renderKanaCard(item, isTableCell = false) {
   return `
     <div class="group relative bg-white hover:bg-gradient-to-b hover:from-white hover:to-sakura-50/40 rounded-2xl p-3 sm:p-3.5 border border-sumi-200 hover:border-sakura-300 hover:shadow-card transition-all duration-200 flex flex-col justify-between cursor-pointer ${isTableCell ? 'min-w-[95px] sm:min-w-[110px] h-[148px]' : ''}" onclick="speakJapanese('${item.k}')">
       <div class="flex items-center justify-between text-xs">
-        <span class="font-mono font-bold text-sumi-500 group-hover:text-sakura-600 transition-colors uppercase tracking-wide">${item.r}</span>
+        <span class="reading-romaji font-mono font-bold text-sumi-500 group-hover:text-sakura-600 transition-colors uppercase tracking-wide">${item.r}</span>
         <button onclick="event.stopPropagation(); speakJapanese('${item.k}')" title="ฟังเสียง" class="w-6 h-6 rounded-full flex items-center justify-center text-sumi-400 hover:text-sakura-600 hover:bg-sakura-100 transition-colors">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
         </button>
       </div>
       <div class="py-1 text-center">
-        <div class="font-jp font-black text-3xl sm:text-4xl text-sumi-900 group-hover:scale-105 group-hover:text-sakura-700 transition-all duration-200 select-none">
+        <div class="font-jp font-jp-scale font-black text-3xl sm:text-4xl text-sumi-900 group-hover:scale-105 group-hover:text-sakura-700 transition-all duration-200 select-none">
           ${item.k}
         </div>
-        <div class="text-[11px] sm:text-xs font-thai font-semibold text-sumi-600 mt-0.5">
+        <div class="reading-th text-[11px] sm:text-xs font-thai font-semibold text-sumi-600 mt-0.5">
           ${item.th || ''}
         </div>
       </div>
@@ -311,6 +481,53 @@ function renderKanaGrid() {
   if (!container) return;
 
   const type = APP_STATE.kanaType;
+
+  // KANJI N5 MODE
+  if (type === 'kanji') {
+    const group = APP_STATE.kanaGroup || 'all';
+    let list = (typeof N5_KANJI_DATA !== 'undefined') ? N5_KANJI_DATA.items : [];
+    if (group !== 'all') {
+      list = list.filter(item => item.cat === group);
+    }
+
+    const searchInput = (document.getElementById('kanaSearch')?.value || '').trim().toLowerCase();
+    if (searchInput) {
+      list = list.filter(item => (
+        item.k.includes(searchInput) ||
+        (item.th && item.th.toLowerCase().includes(searchInput)) ||
+        (item.on && item.on.toLowerCase().includes(searchInput)) ||
+        (item.kun && item.kun.toLowerCase().includes(searchInput)) ||
+        (item.sample && (
+          (item.sample.jp && item.sample.jp.includes(searchInput)) ||
+          (item.sample.kana && item.sample.kana.includes(searchInput)) ||
+          (item.sample.r && item.sample.r.toLowerCase().includes(searchInput)) ||
+          (item.sample.th && item.sample.th.toLowerCase().includes(searchInput))
+        ))
+      ));
+    }
+
+    if (badge) {
+      badge.textContent = `แสดง ${list.length} ตัวอักษรคันจิ`;
+    }
+
+    if (list.length === 0) {
+      container.innerHTML = `
+        <div class="py-16 text-center text-sumi-400 font-thai bg-white rounded-3xl border border-sumi-200 shadow-soft">
+          <div class="text-4xl mb-2">🔍</div>
+          <p class="text-base font-semibold text-sumi-700">ไม่พบคันจิที่ตรงกับ "${searchInput}"</p>
+          <p class="text-xs text-sumi-400 mt-1">ลองค้นหาด้วยตัวอักษรคันจิ, คำอ่านอง/คุง หรือความหมายภาษาไทย</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3.5 sm:gap-4">
+        ${list.map(item => renderKanjiCard(item)).join('')}
+      </div>
+    `;
+    return;
+  }
   const group = APP_STATE.kanaGroup;
   const list = KANA_DATA[type]?.[group] || [];
   const searchInput = (document.getElementById('kanaSearch')?.value || '').trim().toLowerCase();
@@ -766,24 +983,47 @@ function setInkColor(color) {
   showToast('เปลี่ยนสีหมึกเรียบร้อย', '🎨');
 }
 
+function getCurrentStrokeList() {
+  if (APP_STATE.stroke.type === 'kanji') {
+    const group = APP_STATE.stroke.group;
+    const all = (typeof N5_KANJI_DATA !== 'undefined') ? N5_KANJI_DATA.items : [];
+    if (!group || group === 'all') {
+      return all;
+    }
+    return all.filter(item => item.cat === group);
+  }
+  return KANA_DATA[APP_STATE.stroke.type]?.[APP_STATE.stroke.group] || [];
+}
+
 function updateStrokeGroupOptions() {
   const select = document.getElementById('strokeGroupSelect');
   if (!select) return;
 
-  if (APP_STATE.stroke.type === 'katakana') {
+  if (APP_STATE.stroke.type === 'kanji') {
+    const cats = (typeof N5_KANJI_DATA !== 'undefined') ? N5_KANJI_DATA.categories : [];
+    select.innerHTML = cats.map(c => `
+      <option value="${c.id}">${c.icon ? c.icon + ' ' : ''}${c.name}</option>
+    `).join('');
+    if (!APP_STATE.stroke.group || APP_STATE.stroke.group === 'basic' || APP_STATE.stroke.group === 'dakuon' || APP_STATE.stroke.group === 'yoon' || APP_STATE.stroke.group === 'tokushuon') {
+      APP_STATE.stroke.group = 'all';
+    }
+  } else if (APP_STATE.stroke.type === 'katakana') {
     select.innerHTML = `
       <option value="basic">เสียงพื้นฐาน 46 (Seion)</option>
       <option value="dakuon">เสียงขุ่น (Dakuon)</option>
       <option value="yoon">เสียงควบ (Yoon)</option>
       <option value="tokushuon">เสียงพิเศษ (Tokushuon)</option>
     `;
+    if (APP_STATE.stroke.group === 'all' || !['basic', 'dakuon', 'yoon', 'tokushuon'].includes(APP_STATE.stroke.group)) {
+      APP_STATE.stroke.group = 'basic';
+    }
   } else {
     select.innerHTML = `
       <option value="basic">เสียงพื้นฐาน 46 (Seion)</option>
       <option value="dakuon">เสียงขุ่น (Dakuon)</option>
       <option value="yoon">เสียงควบ (Yoon)</option>
     `;
-    if (APP_STATE.stroke.group === 'tokushuon') {
+    if (APP_STATE.stroke.group === 'tokushuon' || APP_STATE.stroke.group === 'all' || !['basic', 'dakuon', 'yoon'].includes(APP_STATE.stroke.group)) {
       APP_STATE.stroke.group = 'basic';
     }
   }
@@ -793,29 +1033,65 @@ function updateStrokeGroupOptions() {
 function populateStrokeCharSelect() {
   const select = document.getElementById('strokeCharSelect');
   if (!select) return;
-  const list = KANA_DATA[APP_STATE.stroke.type][APP_STATE.stroke.group] || [];
-  select.innerHTML = list.map((item, idx) => `
-    <option value="${item.k}" ${idx === APP_STATE.stroke.charIndex ? 'selected' : ''}>
-      ${item.k} (${item.r})
-    </option>
-  `).join('');
+  const list = getCurrentStrokeList();
+  if (APP_STATE.stroke.type === 'kanji') {
+    select.innerHTML = list.map((item, idx) => {
+      const onFirst = item.on ? item.on.split(/[,、]/)[0].trim() : '';
+      const kunFirst = item.kun ? item.kun.split(/[,、]/)[0].trim() : '';
+      const reading = [onFirst, kunFirst].filter(Boolean).join(' / ');
+      return `
+        <option value="${item.k}" ${idx === APP_STATE.stroke.charIndex ? 'selected' : ''}>
+          ${item.k} [${reading || ''}] - ${item.th} (${item.strokes}ขีด)
+        </option>
+      `;
+    }).join('');
+  } else {
+    select.innerHTML = list.map((item, idx) => `
+      <option value="${item.k}" ${idx === APP_STATE.stroke.charIndex ? 'selected' : ''}>
+        ${item.k} (${item.r})
+      </option>
+    `).join('');
+  }
 }
 
 function setStrokeKanaType(type) {
   APP_STATE.stroke.type = type;
   APP_STATE.stroke.charIndex = 0;
+  if (type === 'kanji') {
+    APP_STATE.stroke.group = 'all';
+  } else if (APP_STATE.stroke.group === 'all' || !['basic', 'dakuon', 'yoon', 'tokushuon'].includes(APP_STATE.stroke.group)) {
+    APP_STATE.stroke.group = 'basic';
+  }
+
   const btnH = document.getElementById('stroke-type-hira');
   const btnK = document.getElementById('stroke-type-kata');
+  const btnKanji = document.getElementById('stroke-type-kanji');
   const tag = document.getElementById('stroke-script-tag');
 
   if (type === 'hiragana') {
-    btnH.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-sakura-600 shadow-sm transition-all';
-    btnK.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-sumi-600 hover:text-sumi-900 transition-all';
-    if (tag) tag.textContent = 'ฮิรางานะ';
-  } else {
-    btnK.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-sakura-600 shadow-sm transition-all';
-    btnH.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-sumi-600 hover:text-sumi-900 transition-all';
-    if (tag) tag.textContent = 'คาตาคานะ';
+    if (btnH) btnH.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-sakura-600 shadow-sm transition-all';
+    if (btnK) btnK.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-sumi-600 hover:text-sumi-900 transition-all';
+    if (btnKanji) btnKanji.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-sumi-600 hover:text-indigo-600 transition-all';
+    if (tag) {
+      tag.textContent = 'ฮิรางานะ';
+      tag.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-sakura-100 text-sakura-700 font-thai';
+    }
+  } else if (type === 'katakana') {
+    if (btnK) btnK.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-sakura-600 shadow-sm transition-all';
+    if (btnH) btnH.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-sumi-600 hover:text-sumi-900 transition-all';
+    if (btnKanji) btnKanji.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-sumi-600 hover:text-indigo-600 transition-all';
+    if (tag) {
+      tag.textContent = 'คาตาคานะ';
+      tag.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-sakura-100 text-sakura-700 font-thai';
+    }
+  } else if (type === 'kanji') {
+    if (btnKanji) btnKanji.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-sakura-600 shadow-sm transition-all';
+    if (btnH) btnH.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-sumi-600 hover:text-sumi-900 transition-all';
+    if (btnK) btnK.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-sumi-600 hover:text-sumi-900 transition-all';
+    if (tag) {
+      tag.textContent = 'คันจิ JLPT N5 (103 ตัว)';
+      tag.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-thai';
+    }
   }
 
   updateStrokeGroupOptions();
@@ -824,7 +1100,8 @@ function setStrokeKanaType(type) {
 }
 
 function onStrokeGroupChange() {
-  const val = document.getElementById('strokeGroupSelect')?.value || 'basic';
+  const defaultVal = APP_STATE.stroke.type === 'kanji' ? 'all' : 'basic';
+  const val = document.getElementById('strokeGroupSelect')?.value || defaultVal;
   APP_STATE.stroke.group = val;
   APP_STATE.stroke.charIndex = 0;
   populateStrokeCharSelect();
@@ -832,7 +1109,7 @@ function onStrokeGroupChange() {
 }
 
 function onStrokeCharSelect(char) {
-  const list = KANA_DATA[APP_STATE.stroke.type][APP_STATE.stroke.group] || [];
+  const list = getCurrentStrokeList();
   const idx = list.findIndex(c => c.k === char);
   if (idx !== -1) {
     APP_STATE.stroke.charIndex = idx;
@@ -841,37 +1118,98 @@ function onStrokeCharSelect(char) {
 }
 
 function selectCharacterForStroke(char, type, group) {
-  if (type) APP_STATE.stroke.type = type;
-  if (group) APP_STATE.stroke.group = group;
+  if (type) {
+    APP_STATE.stroke.type = type;
+    const btnH = document.getElementById('stroke-type-hira');
+    const btnK = document.getElementById('stroke-type-kata');
+    const btnKanji = document.getElementById('stroke-type-kanji');
+    const tag = document.getElementById('stroke-script-tag');
+    if (type === 'hiragana') {
+      if (btnH) btnH.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-sakura-600 shadow-sm transition-all';
+      if (btnK) btnK.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-sumi-600 hover:text-sumi-900 transition-all';
+      if (btnKanji) btnKanji.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-sumi-600 hover:text-indigo-600 transition-all';
+      if (tag) {
+        tag.textContent = 'ฮิรางานะ';
+        tag.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-sakura-100 text-sakura-700 font-thai';
+      }
+    } else if (type === 'katakana') {
+      if (btnK) btnK.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-sakura-600 shadow-sm transition-all';
+      if (btnH) btnH.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-sumi-600 hover:text-sumi-900 transition-all';
+      if (btnKanji) btnKanji.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-sumi-600 hover:text-indigo-600 transition-all';
+      if (tag) {
+        tag.textContent = 'คาตาคานะ';
+        tag.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-sakura-100 text-sakura-700 font-thai';
+      }
+    } else if (type === 'kanji') {
+      if (btnKanji) btnKanji.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-sakura-600 shadow-sm transition-all';
+      if (btnH) btnH.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-sumi-600 hover:text-sumi-900 transition-all';
+      if (btnK) btnK.className = 'px-3 py-1.5 rounded-lg text-xs font-medium text-sumi-600 hover:text-sumi-900 transition-all';
+      if (tag) {
+        tag.textContent = 'คันจิ JLPT N5 (103 ตัว)';
+        tag.className = 'text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-thai';
+      }
+    }
+  }
+  if (APP_STATE.stroke.type === 'kanji' && typeof N5_KANJI_DATA !== 'undefined') {
+    const item = N5_KANJI_DATA.items.find(i => i.k === char);
+    if (item) {
+      if (group && group !== 'all' && item.cat === group) {
+        APP_STATE.stroke.group = group;
+      } else if (!group || group === 'all') {
+        APP_STATE.stroke.group = 'all';
+      } else {
+        APP_STATE.stroke.group = item.cat;
+      }
+    } else if (group) {
+      APP_STATE.stroke.group = group;
+    }
+  } else if (group) {
+    APP_STATE.stroke.group = group;
+  }
 
   updateStrokeGroupOptions();
-  const list = KANA_DATA[APP_STATE.stroke.type][APP_STATE.stroke.group] || [];
-  const idx = list.findIndex(c => c.k === char);
+  let list = getCurrentStrokeList();
+  let idx = list.findIndex(c => c.k === char);
+  if (idx === -1 && APP_STATE.stroke.type === 'kanji' && typeof N5_KANJI_DATA !== 'undefined') {
+    const item = N5_KANJI_DATA.items.find(i => i.k === char);
+    if (item) {
+      APP_STATE.stroke.group = item.cat;
+      updateStrokeGroupOptions();
+      list = getCurrentStrokeList();
+      idx = list.findIndex(c => c.k === char);
+    }
+  }
+
   if (idx !== -1) {
     APP_STATE.stroke.charIndex = idx;
+  } else {
+    APP_STATE.stroke.charIndex = 0;
   }
   populateStrokeCharSelect();
   updateStrokeView();
 }
 
 function prevStrokeChar() {
-  const list = KANA_DATA[APP_STATE.stroke.type][APP_STATE.stroke.group] || [];
+  const list = getCurrentStrokeList();
   if (list.length === 0) return;
   APP_STATE.stroke.charIndex = (APP_STATE.stroke.charIndex - 1 + list.length) % list.length;
   updateStrokeView();
 }
 
 function nextStrokeChar() {
-  const list = KANA_DATA[APP_STATE.stroke.type][APP_STATE.stroke.group] || [];
+  const list = getCurrentStrokeList();
   if (list.length === 0) return;
   APP_STATE.stroke.charIndex = (APP_STATE.stroke.charIndex + 1) % list.length;
   updateStrokeView();
 }
 
 function updateStrokeView() {
-  const list = KANA_DATA[APP_STATE.stroke.type][APP_STATE.stroke.group] || [];
+  const list = getCurrentStrokeList();
   if (list.length === 0) return;
 
+  if (APP_STATE.stroke.charIndex >= list.length || APP_STATE.stroke.charIndex < 0) {
+    APP_STATE.stroke.charIndex = 0;
+  }
   const charData = list[APP_STATE.stroke.charIndex];
   if (!charData) return;
 
@@ -887,15 +1225,116 @@ function updateStrokeView() {
   if (charSelect) charSelect.value = charData.k;
 
   document.getElementById('char-display-large').textContent = charData.k;
-  document.getElementById('char-romaji-large').textContent = charData.r;
-  document.getElementById('char-thai-large').textContent = charData.th;
-  document.getElementById('char-stroke-rule').textContent = charData.rule || 'ลากเส้นจากซ้ายไปขวา และบนลงล่างตามแบบฉบับอักษรญี่ปุ่น';
 
-  const sample = charData.sample || { jp: charData.k, r: charData.r, th: charData.th };
-  document.getElementById('char-sample-jp').textContent = sample.jp;
-  document.getElementById('char-sample-kana').textContent = charData.k;
-  document.getElementById('char-sample-romaji').textContent = sample.r;
-  document.getElementById('char-sample-thai').textContent = sample.th;
+  const badgesContainer = document.getElementById('char-kanji-badges');
+
+  if (APP_STATE.stroke.type === 'kanji') {
+    // Kanji specific view
+    const onyomiStr = charData.on || (Array.isArray(charData.onyomi) ? charData.onyomi.join(', ') : charData.onyomi) || '-';
+    const kunyomiStr = charData.kun || (Array.isArray(charData.kunyomi) ? charData.kunyomi.join(', ') : charData.kunyomi) || '—';
+    const onyomiR = charData.on_r || '-';
+    const onyomiTh = charData.on_th || '-';
+    const kunyomiR = charData.kun_r || '-';
+    const kunyomiTh = charData.kun_th || '-';
+
+    const onFirst = charData.on ? charData.on.split(/[,、]/)[0].trim() : '';
+    const kunFirst = charData.kun ? charData.kun.split(/[,、]/)[0].trim() : '';
+    const primaryReading = [onFirst, kunFirst].filter(Boolean).join(' / ');
+
+    const onRFirst = charData.on_r ? charData.on_r.split(/[,、]/)[0].trim() : '';
+    const kunRFirst = charData.kun_r ? charData.kun_r.split(/[,、]/)[0].trim() : '';
+    const primaryR = [onRFirst, kunRFirst].filter(Boolean).join(' / ');
+
+    const onThFirst = charData.on_th ? charData.on_th.split(/[,、]/)[0].trim() : '';
+    const kunThFirst = charData.kun_th ? charData.kun_th.split(/[,、]/)[0].trim() : '';
+    const primaryTh = [onThFirst, kunThFirst].filter(Boolean).join(' / ');
+
+    const romajiLargeEl = document.getElementById('char-romaji-large');
+    if (romajiLargeEl) {
+      romajiLargeEl.innerHTML = `
+        <span class="font-jp text-sakura-700">${primaryReading || `${charData.strokes} ขีด`}</span>
+        ${primaryR ? `<span class="reading-romaji font-mono text-xs text-sumi-500 font-semibold ml-1.5">${primaryR}</span>` : ''}
+        ${primaryTh ? `<span class="reading-th font-thai text-xs text-sakura-600 font-bold ml-1.5">[${primaryTh}]</span>` : ''}
+      `;
+    }
+    document.getElementById('char-thai-large').textContent = `ความหมาย: ${charData.th} (${charData.strokes} ขีด)`;
+
+    if (badgesContainer) {
+      badgesContainer.classList.remove('hidden');
+      badgesContainer.className = 'mt-3 pt-3 border-t border-sakura-100/70 space-y-2';
+      badgesContainer.innerHTML = `
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <!-- Onyomi Badge -->
+          <div class="flex flex-col gap-0.5 px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-200/70" title="เสียงอ่านแบบจีน มักใช้ในคำประสม">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-600 text-white font-thai flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>เสียงอง (音)
+              </span>
+              <span class="font-jp font-bold text-rose-900">${onyomiStr}</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-[10px] text-sumi-500 pl-1 flex-wrap">
+              <span class="reading-romaji font-mono text-sumi-600 font-medium">${onyomiR}</span>
+              <span class="reading-th font-thai text-rose-700 font-bold">[${onyomiTh}]</span>
+            </div>
+          </div>
+
+          <!-- Kunyomi Badge -->
+          <div class="flex flex-col gap-0.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200/70" title="เสียงอ่านแบบญี่ปุ่นแท้ มักใช้เดี่ยวๆ">
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-600 text-white font-thai flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>เสียงคุง (訓)
+              </span>
+              <span class="font-jp font-bold text-emerald-900">${kunyomiStr}</span>
+            </div>
+            <div class="flex items-center gap-1.5 text-[10px] text-sumi-500 pl-1 flex-wrap">
+              <span class="reading-romaji font-mono text-sumi-600 font-medium">${kunyomiR}</span>
+              <span class="reading-th font-thai text-emerald-700 font-bold">[${kunyomiTh}]</span>
+            </div>
+          </div>
+
+          <!-- JLPT Badge -->
+          <div class="px-3 py-2 rounded-xl bg-indigo-50 border border-indigo-200/70 text-indigo-800 font-thai text-[11px] font-bold flex items-center gap-1">
+            <span>🈸 ระดับ: JLPT N5</span>
+            <span class="text-indigo-500 font-mono">(${charData.strokes} ขีด)</span>
+          </div>
+        </div>
+      `;
+    }
+
+    document.getElementById('char-stroke-rule').textContent = charData.rule || 'ลากเส้นตามลำดับหมายเลขจาก KanjiVG';
+
+    const sample = charData.sample || {};
+    document.getElementById('char-sample-jp').textContent = sample.jp || charData.k;
+    document.getElementById('char-sample-kana').textContent = sample.kana || sample.r || '';
+    document.getElementById('char-sample-romaji').textContent = sample.r || '';
+    
+    const sampleThaiEl = document.getElementById('char-sample-thai');
+    if (sampleThaiEl) {
+      sampleThaiEl.innerHTML = `
+        ${sample.th_read ? `<span class="reading-th text-torii font-semibold mr-1">[${sample.th_read}]</span>` : ''}
+        <span>${sample.th || charData.th}</span>
+      `;
+    }
+
+  } else {
+    // Kana specific view
+    document.getElementById('char-romaji-large').textContent = charData.r;
+    document.getElementById('char-thai-large').textContent = charData.th;
+
+    if (badgesContainer) {
+      badgesContainer.classList.add('hidden');
+      badgesContainer.className = 'hidden';
+      badgesContainer.innerHTML = '';
+    }
+
+    document.getElementById('char-stroke-rule').textContent = charData.rule || 'ลากเส้นจากซ้ายไปขวา และบนลงล่างตามแบบฉบับอักษรญี่ปุ่น';
+
+    const sample = charData.sample || { jp: charData.k, r: charData.r, th: charData.th };
+    document.getElementById('char-sample-jp').textContent = sample.jp;
+    document.getElementById('char-sample-kana').textContent = charData.k;
+    document.getElementById('char-sample-romaji').textContent = sample.r;
+    document.getElementById('char-sample-thai').textContent = sample.th;
+  }
 
   clearCanvas();
   renderStrokeStepStrip(charData);
@@ -2406,10 +2845,216 @@ function startDjtMistakesOnly() {
 }
 
 /* =========================================================================
+   11. SETTINGS SYSTEM & DYNAMIC CUSTOMIZATION
+   ========================================================================= */
+const DEFAULT_SETTINGS = {
+  fontFamily: 'zenmaru',
+  fontSizeScale: 'normal',
+  volume: 1.0,
+  speechRate: 0.85,
+  speechPitch: 1.05,
+  showThaiReading: true,
+  showRomajiReading: true
+};
+
+function loadSettingsStorage() {
+  try {
+    const saved = localStorage.getItem('nihongo_master_settings');
+    if (saved) {
+      APP_STATE.settings = { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+    } else {
+      APP_STATE.settings = { ...DEFAULT_SETTINGS };
+    }
+  } catch (e) {
+    console.warn('Failed to load settings from storage:', e);
+    APP_STATE.settings = { ...DEFAULT_SETTINGS };
+  }
+  applySettingsToDOM();
+}
+
+function saveSettingsStorage() {
+  try {
+    localStorage.setItem('nihongo_master_settings', JSON.stringify(APP_STATE.settings));
+  } catch (e) {
+    console.warn('Failed to save settings to localStorage:', e);
+  }
+}
+
+function applySettingsToDOM() {
+  const s = APP_STATE.settings || DEFAULT_SETTINGS;
+  const body = document.body;
+  if (!body) return;
+
+  // Font family
+  body.classList.remove('font-family-zenmaru', 'font-family-notosans', 'font-family-notoserif', 'font-family-kleeone');
+  body.classList.add(`font-family-${s.fontFamily || 'zenmaru'}`);
+
+  // Font size scale
+  body.classList.remove('font-scale-compact', 'font-scale-normal', 'font-scale-large', 'font-scale-xlarge');
+  body.classList.add(`font-scale-${s.fontSizeScale || 'normal'}`);
+
+  // Reading visibility toggles
+  if (s.showThaiReading === false) {
+    body.classList.add('hide-thai-reading');
+  } else {
+    body.classList.remove('hide-thai-reading');
+  }
+
+  if (s.showRomajiReading === false) {
+    body.classList.add('hide-romaji-reading');
+  } else {
+    body.classList.remove('hide-romaji-reading');
+  }
+
+  updateSettingsModalUI();
+}
+
+function updateSettingsModalUI() {
+  const s = APP_STATE.settings || DEFAULT_SETTINGS;
+
+  // Font family cards selection highlight
+  document.querySelectorAll('.setting-font-card').forEach(card => {
+    const val = card.getAttribute('data-font');
+    if (val === s.fontFamily) {
+      card.classList.add('border-sakura-500', 'bg-sakura-50/70', 'ring-2', 'ring-sakura-300');
+      card.classList.remove('border-sumi-200', 'bg-white');
+    } else {
+      card.classList.remove('border-sakura-500', 'bg-sakura-50/70', 'ring-2', 'ring-sakura-300');
+      card.classList.add('border-sumi-200', 'bg-white');
+    }
+  });
+
+  // Font scale buttons
+  document.querySelectorAll('.setting-scale-btn').forEach(btn => {
+    const val = btn.getAttribute('data-scale');
+    if (val === s.fontSizeScale) {
+      btn.classList.add('bg-sakura-600', 'text-white', 'shadow-sm');
+      btn.classList.remove('bg-sumi-100', 'text-sumi-700');
+    } else {
+      btn.classList.remove('bg-sakura-600', 'text-white', 'shadow-sm');
+      btn.classList.add('bg-sumi-100', 'text-sumi-700');
+    }
+  });
+
+  // Audio sliders
+  const volSlider = document.getElementById('setting-volume');
+  const volVal = document.getElementById('setting-volume-val');
+  if (volSlider) volSlider.value = Math.round((s.volume ?? 1) * 100);
+  if (volVal) volVal.textContent = `${Math.round((s.volume ?? 1) * 100)}%`;
+
+  const rateSlider = document.getElementById('setting-rate');
+  const rateVal = document.getElementById('setting-rate-val');
+  if (rateSlider) rateSlider.value = s.speechRate ?? 0.85;
+  if (rateVal) rateVal.textContent = `${Number(s.speechRate ?? 0.85).toFixed(2)}x`;
+
+  const pitchSlider = document.getElementById('setting-pitch');
+  const pitchVal = document.getElementById('setting-pitch-val');
+  if (pitchSlider) pitchSlider.value = s.speechPitch ?? 1.05;
+  if (pitchVal) pitchVal.textContent = `${Number(s.speechPitch ?? 1.05).toFixed(2)}`;
+
+  // Toggles
+  const thaiToggle = document.getElementById('setting-toggle-thai');
+  if (thaiToggle) thaiToggle.checked = s.showThaiReading !== false;
+
+  const romajiToggle = document.getElementById('setting-toggle-romaji');
+  if (romajiToggle) romajiToggle.checked = s.showRomajiReading !== false;
+
+  // Live font preview label
+  const livePreview = document.getElementById('setting-font-live-preview');
+  if (livePreview) {
+    const fontNames = {
+      zenmaru: 'Zen Maru Gothic (ทรงกลมมน)',
+      notosans: 'Noto Sans JP (เส้นตรงทันสมัย)',
+      notoserif: 'Noto Serif JP (พู่กันหรูหรา)',
+      kleeone: 'Klee One (ลายมือเขียนจริง)'
+    };
+    livePreview.textContent = `あいうえお • 漢字 日本語 (JLPT N5) — ${fontNames[s.fontFamily] || ''}`;
+  }
+}
+
+function openSettingsModal() {
+  const modal = document.getElementById('settings-modal');
+  if (!modal) return;
+  updateSettingsModalUI();
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+function closeSettingsModal() {
+  const modal = document.getElementById('settings-modal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+
+function setSettingFontFamily(font) {
+  if (!APP_STATE.settings) APP_STATE.settings = { ...DEFAULT_SETTINGS };
+  APP_STATE.settings.fontFamily = font;
+  saveSettingsStorage();
+  applySettingsToDOM();
+}
+
+function setSettingFontSize(scale) {
+  if (!APP_STATE.settings) APP_STATE.settings = { ...DEFAULT_SETTINGS };
+  APP_STATE.settings.fontSizeScale = scale;
+  saveSettingsStorage();
+  applySettingsToDOM();
+}
+
+function setSettingVolume(val) {
+  if (!APP_STATE.settings) APP_STATE.settings = { ...DEFAULT_SETTINGS };
+  const num = Math.max(0, Math.min(100, Number(val))) / 100;
+  APP_STATE.settings.volume = num;
+  const volVal = document.getElementById('setting-volume-val');
+  if (volVal) volVal.textContent = `${Math.round(num * 100)}%`;
+  saveSettingsStorage();
+}
+
+function setSettingRate(val) {
+  if (!APP_STATE.settings) APP_STATE.settings = { ...DEFAULT_SETTINGS };
+  const num = Math.max(0.5, Math.min(1.5, Number(val)));
+  APP_STATE.settings.speechRate = num;
+  const rateVal = document.getElementById('setting-rate-val');
+  if (rateVal) rateVal.textContent = `${num.toFixed(2)}x`;
+  saveSettingsStorage();
+}
+
+function setSettingPitch(val) {
+  if (!APP_STATE.settings) APP_STATE.settings = { ...DEFAULT_SETTINGS };
+  const num = Math.max(0.5, Math.min(1.5, Number(val)));
+  APP_STATE.settings.speechPitch = num;
+  const pitchVal = document.getElementById('setting-pitch-val');
+  if (pitchVal) pitchVal.textContent = `${num.toFixed(2)}`;
+  saveSettingsStorage();
+}
+
+function toggleSettingThaiReading(checked) {
+  if (!APP_STATE.settings) APP_STATE.settings = { ...DEFAULT_SETTINGS };
+  APP_STATE.settings.showThaiReading = checked;
+  saveSettingsStorage();
+  applySettingsToDOM();
+}
+
+function toggleSettingRomajiReading(checked) {
+  if (!APP_STATE.settings) APP_STATE.settings = { ...DEFAULT_SETTINGS };
+  APP_STATE.settings.showRomajiReading = checked;
+  saveSettingsStorage();
+  applySettingsToDOM();
+}
+
+function resetSettingsToDefault() {
+  APP_STATE.settings = { ...DEFAULT_SETTINGS };
+  saveSettingsStorage();
+  applySettingsToDOM();
+  showToast('คืนค่าการตั้งค่าเริ่มต้นเรียบร้อยแล้ว', '🔄');
+}
+
+/* =========================================================================
    12. GLOBAL INITIALIZATION
    ========================================================================= */
 window.addEventListener('DOMContentLoaded', () => {
   loadRoadmapStorage();
+  loadSettingsStorage();
   setKanaType('hiragana');
   setKanaGroup('basic');
 
@@ -2422,5 +3067,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  console.log('🌸 Nihongo Master initialized with universal KanjiVG stroke engine.');
+  console.log('🌸 Nihongo Master initialized with universal KanjiVG stroke engine & settings system.');
 });
+

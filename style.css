@@ -203,3 +203,70 @@ canvas#practiceCanvas {
 .font-djt-hand {
   font-family: 'Klee One', 'Zen Maru Gothic', cursive !important;
 }
+
+/* =========================================================================
+   Global Settings & Font Customization System
+   ========================================================================= */
+:root {
+  --jp-font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
+  --jp-font-scale: 1;
+}
+
+.font-jp {
+  font-family: var(--jp-font-family) !important;
+}
+
+/* Dynamic Font Families */
+body.font-family-zenmaru {
+  --jp-font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
+}
+body.font-family-notosans {
+  --jp-font-family: 'Noto Sans JP', sans-serif;
+}
+body.font-family-notoserif {
+  --jp-font-family: 'Noto Serif JP', serif;
+}
+body.font-family-kleeone {
+  --jp-font-family: 'Klee One', 'Zen Maru Gothic', cursive, sans-serif;
+}
+
+/* Dynamic Font Sizing / Scaling */
+body.font-scale-compact .font-jp-scale {
+  display: inline-block;
+  transform: scale(0.9);
+  transform-origin: center;
+}
+body.font-scale-normal .font-jp-scale {
+  display: inline-block;
+  transform: scale(1);
+  transform-origin: center;
+}
+body.font-scale-large .font-jp-scale {
+  display: inline-block;
+  transform: scale(1.15);
+  transform-origin: center;
+}
+body.font-scale-xlarge .font-jp-scale {
+  display: inline-block;
+  transform: scale(1.3);
+  transform-origin: center;
+}
+
+/* Reading Display Visibility Toggles */
+body.hide-thai-reading .reading-th {
+  display: none !important;
+}
+body.hide-romaji-reading .reading-romaji {
+  display: none !important;
+}
+
+/* Modal Pop Animation */
+@keyframes pop-in-modal {
+  0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animation-pop {
+  animation: pop-in-modal 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
