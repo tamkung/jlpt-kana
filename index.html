@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nihongo Master (にほんごマスター) - แอพฝึกภาษาญี่ปุ่นและคัดลายมือ</title>
+  <meta name="description" content="แอพพลิเคชันฝึกภาษาญี่ปุ่นครบวงจร ฮิรางานะ คาตาคานะ ระบบฝึกคัดลายมือตามลำดับขีด KanjiVG แฟลชการ์ด ควิซ และคำศัพท์ N5 อนิเมะ">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@600&family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Serif+JP:wght@600;900&family=Outfit:wght@400;500;600;700;800&family=Prompt:wght@300;400;500;600;700&family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sakura: {
+              50: '#fff5f7',
+              100: '#ffe4e9',
+              200: '#fecdd7',
+              300: '#fda4b8',
+              400: '#fb7193',
+              500: '#f43f6e',
+              600: '#e11d53',
+              700: '#be1241',
+            },
+            matcha: {
+              50: '#f2f9f4',
+              100: '#e2f3e7',
+              200: '#c5e7ce',
+              300: '#98d4a8',
+              400: '#63b97c',
+              500: '#3e9c59',
+              600: '#2f7d45',
+              700: '#256338',
+            },
+            washi: {
+              50: '#faf8f5',
+              100: '#f5f0e6',
+              200: '#ece4d3',
+              300: '#dfd4be',
+              400: '#cbbfa6',
+            },
+            sumi: {
+              100: '#f1f5f9',
+              200: '#e2e8f0',
+              300: '#cbd5e1',
+              400: '#94a3b8',
+              500: '#64748b',
+              600: '#475569',
+              700: '#334155',
+              800: '#1e293b',
+              900: '#0f172a',
+            },
+            torii: '#e11d48',
+            fuji: '#4f46e5'
+          },
+          fontFamily: {
+            jp: ['"Zen Maru Gothic"', '"Noto Sans JP"', 'sans-serif'],
+            thai: ['Prompt', 'sans-serif'],
+            sans: ['Outfit', 'Prompt', 'sans-serif']
+          },
+          boxShadow: {
+            'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02)',
+            'card': '0 10px 25px -5px rgba(244, 63, 110, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.03)',
+            'float': '0 20px 35px -10px rgba(15, 23, 42, 0.1)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- External Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Confetti for celebration -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body class="bg-[#fcfbf9] text-sumi-800 font-thai antialiased min-h-screen flex flex-col selection:bg-sakura-200 selection:text-sakura-700">
+
+  <!-- Top Decorative Header / Japanese Aesthetic Bar -->
+  <div class="h-1.5 bg-gradient-to-r from-sakura-400 via-matcha-400 to-fuji"></div>
+
+  <!-- Main Navigation Header -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-sumi-200/70 shadow-sm transition-all duration-200">
+    <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-18 gap-4">
+        
+        <!-- Logo & Branding (Sleek & Compact) -->
+        <div class="flex items-center gap-3 cursor-pointer flex-shrink-0" onclick="switchTab('chart')">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sakura-500 to-sakura-400 text-white flex items-center justify-center font-jp font-black text-xl shadow-md shadow-sakura-500/20 transform hover:scale-105 transition-transform">
+            あ
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="font-jp font-bold text-lg sm:text-xl text-sumi-900 tracking-tight whitespace-nowrap">にほんごマスター</span>
+            <span class="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full bg-sakura-100 text-sakura-700 whitespace-nowrap">JLPT N5</span>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs (Sleek Pill Container with whitespace-nowrap) -->
+        <nav class="hidden md:flex items-center bg-sumi-100/90 p-1.5 rounded-2xl gap-1 shadow-inner flex-shrink-0">
+          <button onclick="switchTab('chart')" id="nav-chart" class="nav-tab active px-3.5 py-1.5 rounded-xl text-xs xl:text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap text-sakura-600 bg-white shadow-sm">
+            <span>🈸</span>
+            <span>ตารางคานะ</span>
+          </button>
+          <button onclick="switchTab('stroke')" id="nav-stroke" class="nav-tab px-3.5 py-1.5 rounded-xl text-xs xl:text-sm font-medium transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap text-sumi-600 hover:text-sumi-900 hover:bg-white/60">
+            <span>🖌️</span>
+            <span>ฝึกคัดลายมือ</span>
+          </button>
+          <button onclick="switchTab('djt')" id="nav-djt" class="nav-tab px-3.5 py-1.5 rounded-xl text-xs xl:text-sm font-medium transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap text-sumi-600 hover:text-sumi-900 hover:bg-white/60">
+            <span>⌨️</span>
+            <span>DJT พิมพ์คานะ</span>
+          </button>
+          <button onclick="switchTab('flashcards')" id="nav-flashcards" class="nav-tab px-3.5 py-1.5 rounded-xl text-xs xl:text-sm font-medium transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap text-sumi-600 hover:text-sumi-900 hover:bg-white/60">
+            <span>🎴</span>
+            <span>แฟลชการ์ด</span>
+          </button>
+          <button onclick="switchTab('quiz')" id="nav-quiz" class="nav-tab px-3.5 py-1.5 rounded-xl text-xs xl:text-sm font-medium transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap text-sumi-600 hover:text-sumi-900 hover:bg-white/60">
+            <span>⚡</span>
+            <span>สปีดควิซ</span>
+          </button>
+          <button onclick="switchTab('vocab')" id="nav-vocab" class="nav-tab px-3.5 py-1.5 rounded-xl text-xs xl:text-sm font-medium transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap text-sumi-600 hover:text-sumi-900 hover:bg-white/60">
+            <span>📖</span>
+            <span>คำศัพท์ N5</span>
+          </button>
+          <button onclick="switchTab('roadmap')" id="nav-roadmap" class="nav-tab px-3.5 py-1.5 rounded-xl text-xs xl:text-sm font-medium transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap text-sumi-600 hover:text-sumi-900 hover:bg-white/60">
+            <span>🗺️</span>
+            <span>แผน 4 สัปดาห์</span>
+          </button>
+        </nav>
+
+        <!-- Right Quick Controls (Voice Audio Test) -->
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <button onclick="testSpeechAudio()" title="ทดสอบเสียงพูดสังเคราะห์" class="px-3.5 py-2 rounded-xl border border-sumi-200 text-sumi-600 hover:text-sakura-600 hover:border-sakura-300 hover:bg-sakura-50 transition-all flex items-center gap-1.5 text-xs font-thai font-medium whitespace-nowrap shadow-sm">
+            <svg class="w-4 h-4 text-sakura-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+            </svg>
+            <span class="hidden sm:inline">ทดสอบเสียง</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Sub-bar (Horizontal Scrollable) -->
+    <div class="md:hidden border-t border-sumi-200/60 bg-white/95 overflow-x-auto py-2.5 px-3 flex gap-2 no-scrollbar">
+      <button onclick="switchTab('chart')" id="m-nav-chart" class="mobile-nav-tab active px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap bg-sakura-100 text-sakura-700">🈸 ตารางคานะ</button>
+      <button onclick="switchTab('stroke')" id="m-nav-stroke" class="mobile-nav-tab px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap text-sumi-600 bg-sumi-100">🖌️ ฝึกคัดลายมือ</button>
+      <button onclick="switchTab('djt')" id="m-nav-djt" class="mobile-nav-tab px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap text-sumi-600 bg-sumi-100">⌨️ DJT คานะ</button>
+      <button onclick="switchTab('flashcards')" id="m-nav-flashcards" class="mobile-nav-tab px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap text-sumi-600 bg-sumi-100">🎴 แฟลชการ์ด</button>
+      <button onclick="switchTab('quiz')" id="m-nav-quiz" class="mobile-nav-tab px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap text-sumi-600 bg-sumi-100">⚡ สปีดควิซ</button>
+      <button onclick="switchTab('vocab')" id="m-nav-vocab" class="mobile-nav-tab px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap text-sumi-600 bg-sumi-100">📖 คลังศัพท์</button>
+      <button onclick="switchTab('roadmap')" id="m-nav-roadmap" class="mobile-nav-tab px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap text-sumi-600 bg-sumi-100">🗺️ แผน 4 สัปดาห์</button>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-[1536px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+
+    <!-- ========================================================================= -->
+    <!-- TAB 1: KANA CHARTS (HIRAGANA & KATAKANA) -->
+    <!-- ========================================================================= -->
+    <section id="tab-chart" class="tab-pane active">
+      
+      <!-- Section Header with Sakura Aesthetic -->
+      <div class="bg-gradient-to-br from-sakura-50 via-white to-matcha-50/40 rounded-3xl p-6 sm:p-8 border border-sakura-100 shadow-soft mb-8">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div>
+            <div class="flex items-center gap-2 text-sakura-600 text-xs sm:text-sm font-semibold tracking-wide uppercase mb-1">
+              <span>🌸 ตารางพยัญชนะญี่ปุ่นฉบับสมบูรณ์</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-sumi-900 font-thai tracking-tight">
+              ตารางอักษรคานะ (Kana Chart)
+            </h1>
+            <p class="text-sumi-600 text-sm mt-1 max-w-2xl font-thai">
+              รวมฮิรางานะและคาตาคานะครบทุกเสียง ทั้ง 46 เสียงพื้นฐาน (Seion), เสียงขุ่น (Dakuon), เสียงควบ (Yoon) และเสียงพิเศษสากล (Tokushuon) พร้อมคำอ่านภาษาไทยและเสียงสังเคราะห์ชัดเจน
+            </p>
+          </div>
+
+          <!-- Kana Type Switcher (Hiragana vs Katakana) -->
+          <div class="flex bg-sumi-100 p-1.5 rounded-2xl self-start lg:self-center shadow-inner">
+            <button onclick="setKanaType('hiragana')" id="kana-type-hira" class="px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm bg-white text-sakura-600">
+              ฮิรางานะ (Hiragana)
+            </button>
+            <button onclick="setKanaType('katakana')" id="kana-type-kata" class="px-5 py-2.5 rounded-xl font-medium text-sm transition-all text-sumi-600 hover:text-sumi-900">
+              คาตาคานะ (Katakana)
+            </button>
+          </div>
+        </div>
+
+        <!-- Subgroup Filters & Search Bar -->
+        <div class="mt-6 pt-6 border-t border-sumi-200/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <!-- Filter Buttons -->
+          <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+            <button onclick="setKanaGroup('basic')" id="kg-basic" class="kg-filter px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-sakura-600 text-white shadow-sm transition-all whitespace-nowrap">
+              เสียงพื้นฐาน 46 (Seion)
+            </button>
+            <button onclick="setKanaGroup('dakuon')" id="kg-dakuon" class="kg-filter px-3.5 py-1.5 rounded-xl text-xs font-medium bg-white text-sumi-600 border border-sumi-200 hover:bg-sumi-50 transition-all whitespace-nowrap">
+              เสียงขุ่น (Dakuon/Handakuon)
+            </button>
+            <button onclick="setKanaGroup('yoon')" id="kg-yoon" class="kg-filter px-3.5 py-1.5 rounded-xl text-xs font-medium bg-white text-sumi-600 border border-sumi-200 hover:bg-sumi-50 transition-all whitespace-nowrap">
+              เสียงควบ (Yōon)
+            </button>
+            <button onclick="setKanaGroup('tokushuon')" id="kg-tokushuon" class="kg-filter px-3.5 py-1.5 rounded-xl text-xs font-medium bg-white text-sumi-600 border border-sumi-200 hover:bg-sumi-50 transition-all whitespace-nowrap">
+              เสียงพิเศษ (Tokushuon)
+            </button>
+          </div>
+
+          <!-- Quick Search -->
+          <div class="relative w-full sm:w-72">
+            <input type="text" id="kanaSearch" oninput="filterKanaCards()" placeholder="ค้นหาตัวอักษร, โรมาจิ หรือคำอ่านไทย..." class="w-full pl-9 pr-4 py-2 bg-white border border-sumi-200 rounded-xl text-xs font-thai focus:outline-none focus:ring-2 focus:ring-sakura-400 focus:border-transparent transition-all">
+            <svg class="w-4 h-4 text-sumi-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info Tip Bar & View Switcher -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-2 mb-4 text-xs text-sumi-500 font-thai">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+          <span>คลิกที่การ์ดเพื่อฟังเสียง | หรือกดปุ่ม 🖌️ เพื่อไปหน้าฝึกคัดลายมือทันที</span>
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <!-- View Switcher -->
+          <div class="inline-flex bg-sumi-100 p-1 rounded-xl border border-sumi-200/80 shadow-inner">
+            <button id="view-mode-table" onclick="setKanaViewMode('table')" title="ตารางมาตรฐาน 50 เสียงแยกตามวรรคและสระ" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs bg-white text-sakura-600 shadow-xs transition-all">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+              <span>ตาราง 50 เสียง</span>
+            </button>
+            <button id="view-mode-grid" onclick="setKanaViewMode('grid')" title="แสดงแบบการ์ดเรียงต่อกัน" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-xs text-sumi-600 hover:text-sumi-900 transition-all">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+              <span>การ์ดเรียง</span>
+            </button>
+          </div>
+          <div id="kana-count-badge" class="font-medium text-sumi-600 whitespace-nowrap">แสดง 46 ตัวอักษร</div>
+        </div>
+      </div>
+
+      <!-- Kana Container (Dynamic Table or Grid) -->
+      <div id="kana-grid">
+        <!-- Rendered by JavaScript -->
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: STROKE PRACTICE CANVAS (PRIORITY FEATURE WITH KANJIVG) -->
+    <!-- ========================================================================= -->
+    <section id="tab-stroke" class="tab-pane hidden">
+      
+      <!-- Top Canvas Controller Bar -->
+      <div class="bg-white rounded-3xl p-5 sm:p-7 border border-sumi-200 shadow-soft mb-6">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          
+          <!-- Title & Character Selector -->
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-torii/10 text-torii flex items-center justify-center font-jp font-bold text-lg">
+              筆
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-xl sm:text-2xl font-extrabold text-sumi-900 font-thai">ระบบฝึกคัดลายมือตามลำดับขีด</h2>
+                <span id="stroke-script-tag" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-sakura-100 text-sakura-700 font-thai">ฮิรางานะ</span>
+              </div>
+              <p class="text-xs text-sumi-500 font-thai">สมุดคัดสไตล์เกงโคโยชิ (Genkouyoushi) อ้างอิงเวกเตอร์มาตรฐาน KanjiVG เส้นตรงแม่นยำ 100%</p>
+            </div>
+          </div>
+
+          <!-- Quick Character Switcher & Progress -->
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Kana Type Toggle -->
+            <div class="flex bg-sumi-100 p-1 rounded-xl">
+              <button onclick="setStrokeKanaType('hiragana')" id="stroke-type-hira" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-sakura-600 shadow-sm transition-all">ฮิรางานะ</button>
+              <button onclick="setStrokeKanaType('katakana')" id="stroke-type-kata" class="px-3 py-1.5 rounded-lg text-xs font-medium text-sumi-600 hover:text-sumi-900 transition-all">คาตาคานะ</button>
+            </div>
+
+            <!-- Group Selector -->
+            <select id="strokeGroupSelect" onchange="onStrokeGroupChange()" class="bg-white border border-sumi-200 rounded-xl px-3 py-1.5 text-xs font-thai font-medium text-sumi-700 focus:outline-none focus:ring-2 focus:ring-sakura-400">
+              <option value="basic">เสียงพื้นฐาน 46 (Seion)</option>
+              <option value="dakuon">เสียงขุ่น (Dakuon)</option>
+              <option value="yoon">เสียงควบ (Yoon)</option>
+            </select>
+
+            <!-- Jump to Character Select -->
+            <select id="strokeCharSelect" onchange="onStrokeCharSelect(this.value)" class="bg-white border border-sumi-200 rounded-xl px-3 py-1.5 text-xs font-bold text-sumi-800 font-jp focus:outline-none focus:ring-2 focus:ring-sakura-400">
+              <!-- Populated by JS -->
+            </select>
+
+            <!-- Navigation Prev / Next Buttons -->
+            <div class="flex items-center gap-1">
+              <button onclick="prevStrokeChar()" title="ตัวก่อนหน้า (ปุ่มลูกศรซ้าย)" class="p-2 rounded-xl border border-sumi-200 hover:bg-sumi-100 text-sumi-700 transition-colors flex items-center gap-1 text-xs font-thai font-medium whitespace-nowrap">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                <span class="hidden sm:inline">ตัวก่อนหน้า</span>
+              </button>
+              <span id="strokeProgressCounter" class="text-xs font-mono font-bold text-sumi-500 px-1">1/46</span>
+              <button onclick="nextStrokeChar()" title="ตัวถัดไป (ปุ่มลูกศรขวา)" class="p-2 rounded-xl border border-sumi-200 hover:bg-sumi-100 text-sumi-700 transition-colors flex items-center gap-1 text-xs font-thai font-medium whitespace-nowrap">
+                <span class="hidden sm:inline">ตัวถัดไป</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ========================================================== -->
+        <!-- VISUAL STEP-BY-STEP STROKE PREVIEW STRIP (Horizontal) -->
+        <!-- ========================================================== -->
+        <div class="mt-6 pt-5 border-t border-sumi-100">
+          <div class="flex items-center justify-between mb-2.5">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-torii font-thai flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-torii" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd"></path>
+                </svg>
+                ลำดับการลากเส้นทีละขีด (Step-by-Step Stroke Guide)
+              </span>
+              <span class="text-[11px] text-sumi-400 font-thai hidden sm:inline">(เส้นก่อนหน้าสีเทา, เส้นปัจจุบันสีดำเข้มพร้อมหมายเลขและลูกศรสีแดง)</span>
+            </div>
+            <div id="stroke-step-count-badge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-sumi-100 text-sumi-700">
+              จำนวน 3 ขีด
+            </div>
+          </div>
+
+          <!-- Step strip container -->
+          <div id="stroke-steps-strip" class="flex items-center gap-3.5 overflow-x-auto pb-3 pt-1 px-1 no-scrollbar">
+            <!-- Rendered by JS: Individual Genkouyoushi square boxes for each stroke step -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Canvas & Practice Area Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Left: Interactive Canvas Box (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-3xl p-6 border border-sumi-200 shadow-soft flex flex-col items-center">
+          
+          <!-- Canvas Top Toolbar -->
+          <div class="w-full flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-sumi-100">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold text-sumi-600 font-thai">กระดานคัดลายมือ:</span>
+              <button onclick="toggleGhostGuide()" id="btn-toggle-ghost" class="px-2.5 py-1 rounded-lg text-xs font-thai font-medium border border-sumi-200 bg-sakura-50 text-sakura-700 hover:bg-sakura-100 transition-colors">
+                ไกด์ตัวอักษร: เปิด
+              </button>
+            </div>
+
+            <!-- Brush Size & Color -->
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-sumi-500 font-thai">สีหมึก:</span>
+              <button onclick="setInkColor('#0f172a')" title="หมึกดำซุมิ" class="w-5 h-5 rounded-full bg-slate-900 ring-2 ring-offset-2 ring-slate-900 transition-all"></button>
+              <button onclick="setInkColor('#e11d48')" title="หมึกแดงโทริอิ" class="w-5 h-5 rounded-full bg-rose-600 hover:scale-110 transition-all"></button>
+              <button onclick="setInkColor('#059669')" title="หมึกเขียวมัทฉะ" class="w-5 h-5 rounded-full bg-emerald-600 hover:scale-110 transition-all"></button>
+              <div class="h-4 w-px bg-sumi-200 mx-1"></div>
+              <button onclick="clearCanvas()" title="ล้างกระดาน" class="p-1.5 text-sumi-500 hover:text-torii rounded-lg hover:bg-rose-50 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- HTML5 Canvas in Genkouyoushi Frame -->
+          <div class="relative w-full max-w-[360px] sm:max-w-[420px] aspect-square rounded-2xl overflow-hidden border-2 border-sumi-300 shadow-md bg-white">
+            
+            <!-- Genkouyoushi Dashed Guideline Overlays (Subtle 4 Quadrants) -->
+            <div class="absolute inset-0 pointer-events-none flex flex-col justify-center">
+              <div class="w-full border-t border-dashed border-red-300/60"></div>
+            </div>
+            <div class="absolute inset-0 pointer-events-none flex justify-center">
+              <div class="h-full border-l border-dashed border-red-300/60"></div>
+            </div>
+            <!-- Diagonal subtle watermark guide -->
+            <div class="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(#e11d48_1px,transparent_1px)] [background-size:16px_16px]"></div>
+
+            <!-- The Active Drawing Canvas (Ghost guide rendered directly inside canvas with Path2D) -->
+            <canvas id="practiceCanvas" width="420" height="420" class="w-full h-full relative z-10"></canvas>
+
+            <!-- Touch Prompt Badge -->
+            <div id="canvas-hint" class="absolute bottom-3 right-3 z-20 pointer-events-none px-2.5 py-1 rounded-md bg-sumi-800/60 backdrop-blur-sm text-white text-[11px] font-thai">
+              ใช้นิ้วหรือเมาส์ลากเขียนได้เลย
+            </div>
+          </div>
+
+          <!-- Canvas Action Buttons -->
+          <div class="w-full max-w-[420px] flex items-center justify-between gap-2 mt-5">
+            <button onclick="demonstrateStroke()" id="btn-demonstrate" class="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-sakura-500 to-sakura-600 text-white font-thai font-semibold text-xs sm:text-sm shadow-md shadow-sakura-500/20 hover:from-sakura-600 hover:to-sakura-700 active:scale-95 transition-all flex items-center justify-center gap-2">
+              <svg class="w-4 h-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span>สาธิตวิธีเขียน (Demonstrate)</span>
+            </button>
+            <button onclick="clearCanvas()" class="py-2.5 px-4 rounded-xl border border-sumi-300 text-sumi-700 hover:bg-sumi-100 font-thai font-medium text-xs sm:text-sm active:scale-95 transition-all flex items-center gap-1.5 whitespace-nowrap">
+              <span>ล้างกระดาน</span>
+            </button>
+            <button onclick="undoStroke()" title="ย้อนกลับ 1 เส้น" class="py-2.5 px-3 rounded-xl border border-sumi-300 text-sumi-700 hover:bg-sumi-100 font-thai font-medium text-xs sm:text-sm active:scale-95 transition-all">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+            </button>
+          </div>
+
+          <!-- Canvas Bottom Quick Navigation (Prev / Counter / Next) -->
+          <div class="w-full max-w-[420px] flex items-center justify-between gap-2.5 mt-3 pt-3 border-t border-sumi-100">
+            <button onclick="prevStrokeChar()" title="ตัวก่อนหน้า (ปุ่มลูกศรซ้าย ←)" class="flex-1 py-2 px-3 rounded-xl border border-sumi-200 bg-white hover:bg-sumi-100 text-sumi-700 transition-all flex items-center justify-center gap-1.5 text-xs font-thai font-medium active:scale-95 shadow-2xs">
+              <svg class="w-4 h-4 text-sumi-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+              <span>ตัวก่อนหน้า</span>
+            </button>
+            
+            <div class="px-3 py-1.5 rounded-xl bg-sumi-50 border border-sumi-200 text-xs font-mono font-bold text-sumi-600 flex items-center gap-1 select-none whitespace-nowrap">
+              <span id="strokeProgressCounterCanvas">1/46</span>
+            </div>
+
+            <button onclick="nextStrokeChar()" title="ตัวถัดไป (ปุ่มลูกศรขวา →)" class="flex-1 py-2 px-3 rounded-xl bg-sumi-900 hover:bg-sakura-600 text-white transition-all flex items-center justify-center gap-1.5 text-xs font-thai font-bold active:scale-95 shadow-sm">
+              <span>ตัวถัดไป</span>
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Character Details, Pronunciation & Vocabulary Context (5 cols) -->
+        <div class="lg:col-span-5 space-y-5">
+          
+          <!-- Character Highlight Card -->
+          <div class="bg-gradient-to-br from-white via-sakura-50/20 to-white rounded-3xl p-6 border border-sakura-100 shadow-soft">
+            <div class="flex items-start justify-between">
+              <div>
+                <span class="text-xs font-bold text-sakura-600 font-thai uppercase tracking-wider">ข้อมูลตัวอักษร</span>
+                <div class="flex items-baseline gap-3 mt-1">
+                  <span id="char-display-large" class="font-jp font-black text-5xl sm:text-6xl text-sumi-900 leading-none">あ</span>
+                  <div>
+                    <div id="char-romaji-large" class="text-2xl font-bold text-sumi-800 tracking-tight font-mono">a</div>
+                    <div id="char-thai-large" class="text-sm font-semibold text-sakura-600 font-thai">อะ (เสียงสั้น)</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pronounce Audio Button -->
+              <button onclick="speakCurrentStrokeChar()" class="p-3.5 rounded-2xl bg-sakura-500 text-white shadow-md shadow-sakura-500/30 hover:bg-sakura-600 active:scale-95 transition-all flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                <span class="text-xs font-thai font-semibold">ฟังเสียง</span>
+              </button>
+            </div>
+
+            <!-- Stroke Rule / Tip -->
+            <div class="mt-6 pt-4 border-t border-sumi-100/80">
+              <h4 class="text-xs font-bold text-sumi-700 font-thai mb-2 flex items-center gap-1.5">
+                <span class="text-torii">📌</span> กฎการคัดลายมือและข้อสังเกต:
+              </h4>
+              <p id="char-stroke-rule" class="text-xs text-sumi-600 font-thai leading-relaxed">
+                ลากเส้นที่ 1 จากซ้ายไปขวา เส้นที่ 2 ลากตรงลงมา และเส้นที่ 3 ม้วนเป็นวงกลมโค้งมนสมส่วน
+              </p>
+            </div>
+          </div>
+
+          <!-- Vocabulary Example Card -->
+          <div class="bg-white rounded-3xl p-6 border border-sumi-200 shadow-soft">
+            <h4 class="text-xs font-bold text-sumi-500 uppercase tracking-wider font-thai mb-3">ตัวอย่างคำศัพท์ที่ใช้ตัวนี้</h4>
+            
+            <div class="p-4 rounded-2xl bg-washi-50 border border-washi-200 flex items-center justify-between">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span id="char-sample-jp" class="font-jp font-bold text-xl text-sumi-900">朝</span>
+                  <span id="char-sample-kana" class="font-jp text-xs text-sakura-600 bg-white px-2 py-0.5 rounded-md border border-sakura-100">あさ</span>
+                  <span id="char-sample-romaji" class="text-xs text-sumi-500 font-mono">asa</span>
+                </div>
+                <div id="char-sample-thai" class="text-xs text-sumi-600 font-thai mt-1">ตอนเช้า, รุ่งอรุณ</div>
+              </div>
+              <button onclick="speakSampleWord()" class="p-2 text-sumi-500 hover:text-sakura-600 rounded-xl hover:bg-white transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Keyboard Shortcuts Tip -->
+          <div class="bg-matcha-50/50 rounded-2xl p-4 border border-matcha-200/60 text-xs text-matcha-700 font-thai flex items-center gap-3">
+            <div class="text-lg">💡</div>
+            <div>
+              <span class="font-semibold">คีย์ลัด:</span> กดปุ่ม <kbd class="px-1.5 py-0.5 bg-white border border-matcha-300 rounded text-[10px] font-mono">←</kbd> เพื่อดูตัวก่อนหน้า, กด <kbd class="px-1.5 py-0.5 bg-white border border-matcha-300 rounded text-[10px] font-mono">→</kbd> เพื่อไปตัวถัดไป
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- TAB: DJT KANA DRILL (REALKANA FAST TYPING DRILL) -->
+    <!-- ========================================================================= -->
+    <section id="tab-djt" class="tab-pane hidden">
+      <div class="max-w-4xl mx-auto">
+        
+        <!-- SETUP SCREEN -->
+        <div id="djt-setup-screen" class="space-y-6">
+          
+          <!-- Banner -->
+          <div class="bg-gradient-to-br from-white via-indigo-50/30 to-white rounded-3xl p-6 sm:p-8 border border-indigo-100 shadow-soft">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div class="flex items-center gap-2 text-indigo-600 text-xs sm:text-sm font-semibold tracking-wide uppercase mb-1">
+                  <span>⚡ สไตล์ /djt/ & RealKana Drill</span>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-sumi-900 font-thai">
+                  DJT Kana Drill (ระบบฝึกพิมพ์คานะแบบตอบสนองทันที)
+                </h2>
+                <p class="text-xs sm:text-sm text-sumi-600 font-thai mt-1 max-w-xl">
+                  เลือกวรรคที่ต้องการฝึก แล้วพิมพ์โรมาจิ (Romaji) เพื่อสร้างปฏิกิริยาสะท้อนกลับ (Muscle Memory) ตรวจถูกทันทีโดยไม่ต้องกด Enter!
+                </p>
+              </div>
+              <div class="flex items-center gap-3 self-start sm:self-center">
+                <button onclick="startDjtDrill()" id="btn-start-djt-top" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-fuji text-white font-thai font-bold text-sm shadow-md shadow-indigo-500/25 hover:from-indigo-700 hover:to-indigo-800 active:scale-95 transition-all flex items-center gap-2 whitespace-nowrap">
+                  <span>🚀 เริ่มฝึกพิมพ์</span>
+                  <span id="djt-top-btn-count" class="px-2 py-0.5 rounded-full bg-white/20 text-xs font-mono">46</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Preset Action Bar -->
+            <div class="mt-6 pt-5 border-t border-indigo-100/80 flex flex-wrap items-center justify-between gap-3">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs font-semibold text-sumi-500 font-thai mr-1">ชุดทางลัด:</span>
+                <button onclick="selectDjtPreset('hira_basic')" class="px-3 py-1.5 rounded-xl text-xs font-medium bg-white text-sakura-700 border border-sakura-200 hover:bg-sakura-50 transition-all shadow-2xs">🌸 ฮิรางานะ 46</button>
+                <button onclick="selectDjtPreset('kata_basic')" class="px-3 py-1.5 rounded-xl text-xs font-medium bg-white text-sumi-700 border border-sumi-200 hover:bg-sumi-50 transition-all shadow-2xs">カタ คาตาคานะ 46</button>
+                <button onclick="selectDjtPreset('vowels_only')" class="px-3 py-1.5 rounded-xl text-xs font-medium bg-white text-indigo-700 border border-indigo-200 hover:bg-indigo-50 transition-all shadow-2xs">🔤 สระ 5 เสียง (A-I-U-E-O)</button>
+                <button onclick="selectDjtPreset('dakuon_all')" class="px-3 py-1.5 rounded-xl text-xs font-medium bg-white text-amber-700 border border-amber-200 hover:bg-amber-50 transition-all shadow-2xs">⚡ เสียงขุ่น & ควบ</button>
+                <button onclick="selectDjtPreset('all')" class="px-3 py-1.5 rounded-xl text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-all">✨ เลือกทั้งหมด</button>
+                <button onclick="selectDjtPreset('clear')" class="px-3 py-1.5 rounded-xl text-xs font-medium text-sumi-500 hover:text-rose-600 hover:bg-rose-50 transition-all">✕ ล้างทั้งหมด</button>
+              </div>
+              <div class="text-xs font-thai text-sumi-600 font-medium">
+                เลือกแล้ว: <span id="djt-selected-count" class="font-bold text-indigo-600 font-mono text-sm">46</span> ตัว
+              </div>
+            </div>
+          </div>
+
+          <!-- Selection Matrices (2 Columns: Hiragana & Katakana) -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Left: Hiragana Matrix -->
+            <div class="bg-white rounded-3xl p-5 sm:p-6 border border-sumi-200 shadow-soft">
+              <div class="flex items-center justify-between mb-4 pb-3 border-b border-sumi-100">
+                <div class="flex items-center gap-2">
+                  <span class="w-7 h-7 rounded-xl bg-sakura-100 text-sakura-600 flex items-center justify-center font-jp font-bold text-sm">あ</span>
+                  <h3 class="font-bold text-base text-sumi-900 font-thai">ฮิรางานะ (Hiragana)</h3>
+                </div>
+                <div class="flex items-center gap-1.5 text-xs">
+                  <button onclick="toggleDjtScriptAll('hira', true)" class="text-sakura-600 hover:underline font-thai">เลือกหมด</button>
+                  <span class="text-sumi-300">•</span>
+                  <button onclick="toggleDjtScriptAll('hira', false)" class="text-sumi-400 hover:text-sumi-600 font-thai">ล้าง</button>
+                </div>
+              </div>
+
+              <!-- Hiragana Groups Container -->
+              <div id="djt-hira-rows-container" class="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
+                <!-- Populated dynamically by JS -->
+              </div>
+            </div>
+
+            <!-- Right: Katakana Matrix -->
+            <div class="bg-white rounded-3xl p-5 sm:p-6 border border-sumi-200 shadow-soft">
+              <div class="flex items-center justify-between mb-4 pb-3 border-b border-sumi-100">
+                <div class="flex items-center gap-2">
+                  <span class="w-7 h-7 rounded-xl bg-sumi-100 text-sumi-700 flex items-center justify-center font-jp font-bold text-sm">ア</span>
+                  <h3 class="font-bold text-base text-sumi-900 font-thai">คาตาคานะ (Katakana)</h3>
+                </div>
+                <div class="flex items-center gap-1.5 text-xs">
+                  <button onclick="toggleDjtScriptAll('kata', true)" class="text-indigo-600 hover:underline font-thai">เลือกหมด</button>
+                  <span class="text-sumi-300">•</span>
+                  <button onclick="toggleDjtScriptAll('kata', false)" class="text-sumi-400 hover:text-sumi-600 font-thai">ล้าง</button>
+                </div>
+              </div>
+
+              <!-- Katakana Groups Container -->
+              <div id="djt-kata-rows-container" class="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">
+                <!-- Populated dynamically by JS -->
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Action Bar & Options -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-sumi-200 shadow-soft flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex flex-wrap items-center gap-4 text-xs font-thai text-sumi-700">
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" id="djt-opt-audio" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-400">
+                <span>🔊 เล่นเสียงอ่านภาษาญี่ปุ่นเมื่อตอบถูก</span>
+              </label>
+              <div class="flex items-center gap-2">
+                <span class="text-sumi-500">จำนวนคำต่อรอบ:</span>
+                <select id="djt-opt-count" class="bg-sumi-50 border border-sumi-200 rounded-xl px-2.5 py-1 text-xs font-bold text-sumi-800">
+                  <option value="20">20 ตัว (เร็ว)</option>
+                  <option value="46" selected>46 ตัว (มาตรฐาน)</option>
+                  <option value="100">100 ตัว (ฝึกเข้มข้น)</option>
+                  <option value="endless">ไม่จำกัด (Endless Run)</option>
+                </select>
+              </div>
+            </div>
+
+            <button onclick="startDjtDrill()" class="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-fuji to-sakura-600 text-white font-thai font-bold text-sm shadow-md shadow-indigo-500/25 hover:opacity-95 active:scale-95 transition-all">
+              🚀 เริ่มการฝึกพิมพ์ DJT Kana
+            </button>
+          </div>
+
+          <!-- DJT Explanation & Kana Guide (Matches djtguide.neocities.org/kana Explanation) -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-sumi-200 shadow-soft">
+            <details class="group">
+              <summary class="flex items-center justify-between cursor-pointer list-none font-bold text-sm text-sumi-800 font-thai select-none">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs">📖</span>
+                  <span>คำแนะนำและกฎการผสมเสียงสไตล์ DJT (Explanation & Rules)</span>
+                </div>
+                <span class="text-xs text-indigo-600 group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <div class="mt-4 pt-4 border-t border-sumi-100 text-xs text-sumi-600 font-thai space-y-3 leading-relaxed">
+                <p>
+                  <strong class="text-sumi-900">เทคนิคการฝึกแบบ Muscle Memory:</strong> ฝึกทีละวรรค (เช่น อะ-อิ-อุ-เอะ-โอะ หรือ วรรค Ka) ซ้ำๆ จนพิมพ์ตอบได้ทันทีโดยไม่ต้องหยุดคิด เมื่อหยุดผิดพลาดแล้วค่อยติ๊กเพิ่มวรรคถัดไปเข้ามารวม
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                  <div class="p-3 rounded-2xl bg-amber-50/70 border border-amber-200/60">
+                    <div class="font-bold text-amber-800 mb-1">⚡ เสียงขุ่น (Dakuten - ゛) & เสียงกึ่งขุ่น (Handakuon - ゜)</div>
+                    <ul class="list-disc list-inside space-y-0.5 text-amber-900 font-medium">
+                      <li>K ➔ G (か ka ➔ が ga)</li>
+                      <li>S / TS ➔ Z (さ sa ➔ ざ za)</li>
+                      <li>T ➔ D (た ta ➔ だ da)</li>
+                      <li>H / F ➔ B (は ha ➔ ば ba)</li>
+                      <li>H / F ➔ P (วงกลม Handakuon: ほ ho ➔ ぽ po)</li>
+                    </ul>
+                  </div>
+                  <div class="p-3 rounded-2xl bg-indigo-50/70 border border-indigo-200/60">
+                    <div class="font-bold text-indigo-800 mb-1">🔗 เสียงควบ (Yoon) & ซึเล็ก (Sokuon - っ)</div>
+                    <p class="mb-1">
+                      ตัว <strong>ゃ, ゅ, ょ</strong> ขนาดเล็ก ใช้ควบเสียงกับวรรค 'i' เช่น ぎ (gi) + ゃ (ya) = <strong>ぎゃ (gya)</strong>
+                    </p>
+                    <p>
+                      ตัว <strong>っ (Sokuon)</strong> ไม่ได้ออกเสียงเดี่ยว แต่ทำหน้าที่หยุดเสียง / ซ้ำพยัญชนะตัวถัดไป เช่น <strong>にっぽん (nippon)</strong>, <strong>がっこう (gakkou)</strong>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
+
+        </div>
+
+        <!-- ACTIVE DRILL SCREEN -->
+        <div id="djt-drill-screen" class="hidden space-y-6">
+          
+          <!-- Top Live Status HUD -->
+          <div class="bg-white rounded-2xl p-3.5 sm:p-4 border border-sumi-200 shadow-soft flex items-center justify-between gap-3">
+            <button onclick="abortDjtDrill()" class="px-3 py-1.5 rounded-xl border border-sumi-200 text-sumi-600 hover:text-rose-600 hover:bg-rose-50 text-xs font-thai font-medium transition-colors flex items-center gap-1">
+              <span>← เลิกฝึก</span>
+            </button>
+
+            <!-- Stats Items -->
+            <div class="flex items-center gap-4 sm:gap-6 text-center">
+              <div>
+                <div class="text-[10px] uppercase font-bold text-sumi-400 font-mono">Streak</div>
+                <div class="text-base sm:text-lg font-black text-amber-500 flex items-center justify-center gap-1 font-mono">
+                  <span>🔥</span>
+                  <span id="djt-hud-streak">0</span>
+                </div>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase font-bold text-sumi-400 font-mono">Accuracy</div>
+                <div id="djt-hud-acc" class="text-base sm:text-lg font-black text-emerald-600 font-mono">100%</div>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase font-bold text-sumi-400 font-mono">Speed</div>
+                <div class="text-base sm:text-lg font-black text-indigo-600 font-mono">
+                  <span id="djt-hud-cpm">0</span> <span class="text-[10px] font-normal text-sumi-400">CPM</span>
+                </div>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase font-bold text-sumi-400 font-mono">Progress</div>
+                <div id="djt-hud-progress" class="text-base sm:text-lg font-bold text-sumi-800 font-mono">1 / 46</div>
+              </div>
+            </div>
+
+            <!-- Sound toggle -->
+            <button onclick="toggleDjtAudio()" id="btn-djt-audio-toggle" class="p-2 rounded-xl text-sumi-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" title="เปิด/ปิดเสียง">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+            </button>
+          </div>
+
+          <!-- Typing Arena Card -->
+          <div id="djt-arena-card" class="bg-white rounded-3xl p-6 sm:p-10 border-2 border-sumi-200 shadow-card text-center relative overflow-hidden transition-all duration-200">
+            
+            <!-- Type badge -->
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sumi-100 text-sumi-600 text-xs font-thai font-semibold">
+              <span id="djt-badge-script">ฮิรางานะ</span>
+              <span>•</span>
+              <span id="djt-badge-row">วรรค Ka</span>
+            </div>
+
+            <!-- Giant Character with Hover Hint (Matches DJT Hover to show romanization) -->
+            <div class="relative group inline-block mx-auto cursor-pointer" onclick="toggleDjtRevealHint()" title="ชี้เมาส์หรือแตะเพื่อดูเฉลยโรมาจิ">
+              <!-- Hover/Tap Hint Tooltip -->
+              <div id="djt-hover-hint" class="opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none absolute -top-3 left-1/2 -translate-x-1/2 bg-sumi-900/90 text-white text-xs font-mono font-bold px-3 py-1 rounded-full shadow-md whitespace-nowrap z-20">
+                💡 เฉลย: <span id="djt-hint-romaji">a</span> <span id="djt-hint-th" class="font-thai font-normal text-sumi-300">(อะ)</span>
+              </div>
+
+              <!-- Giant Character -->
+              <div id="djt-char-display" class="font-jp font-djt-maru font-black text-8xl sm:text-9xl md:text-[10rem] text-sumi-900 my-2 select-none transition-all duration-150 transform hover:scale-[1.02]">
+                あ
+              </div>
+            </div>
+
+            <!-- In-Drill Quick Tools Bar (DJT 100% Parity: Play sound, Stroke order, Font Switcher) -->
+            <div class="flex flex-wrap items-center justify-center gap-2 mb-3">
+              <button type="button" onclick="playDjtCurrentAudio()" id="btn-djt-tool-sound" class="px-3 py-1.5 rounded-xl border border-sumi-200 text-sumi-600 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50/50 text-xs font-thai font-medium transition-all flex items-center gap-1.5 shadow-2xs">
+                <span>🔊</span>
+                <span>ฟังเสียง (Play sound)</span>
+              </button>
+              <button type="button" onclick="toggleDjtStrokeModal()" id="btn-djt-tool-stroke" class="px-3 py-1.5 rounded-xl border border-sumi-200 text-sumi-600 hover:text-sakura-600 hover:border-sakura-300 hover:bg-sakura-50/50 text-xs font-thai font-medium transition-all flex items-center gap-1.5 shadow-2xs">
+                <span>🖌️</span>
+                <span>ลำดับขีด (Stroke order)</span>
+              </button>
+              <button type="button" onclick="cycleDjtFont()" id="btn-djt-tool-font" class="px-3 py-1.5 rounded-xl border border-sumi-200 text-sumi-600 hover:text-sumi-900 hover:bg-sumi-100 text-xs font-thai font-medium transition-all flex items-center gap-1.5 shadow-2xs" title="สลับแบบอักษร (Font)">
+                <span>🔤</span>
+                <span>ฟอนต์: <span id="djt-font-label" class="font-bold text-indigo-600">กลม (Maru)</span></span>
+              </button>
+            </div>
+
+            <!-- Error / Feedback Box -->
+            <div id="djt-feedback-box" class="h-8 flex items-center justify-center text-sm font-thai font-bold text-rose-600 transition-all">
+              <!-- Shown on error: e.g. "เฉลย: ka (คะ)" -->
+            </div>
+
+            <!-- Romaji Input Field -->
+            <div class="max-w-xs mx-auto mt-1">
+              <input type="text" id="djt-input" oninput="handleDjtInput(event)" onkeydown="handleDjtKeyDown(event)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="พิมพ์เสียง Romaji..." class="w-full text-center text-2xl sm:text-3xl font-mono font-extrabold py-3 px-4 border-2 border-sumi-300 rounded-2xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all shadow-inner bg-white text-sumi-900 tracking-wider">
+              <div class="text-[11px] text-sumi-400 font-thai mt-2">
+                ตรวจคำตอบทันที • กด <kbd class="px-1.5 py-0.5 rounded bg-sumi-100 border text-[10px] font-mono">Spacebar</kbd> เพื่อข้าม
+              </div>
+            </div>
+
+            <!-- Skip Button -->
+            <div class="mt-3">
+              <button onclick="skipDjtChar()" class="text-xs text-sumi-400 hover:text-sumi-700 font-thai underline">
+                ไม่แน่ใจ? ข้ามตัวนี้แล้วนำไปถามใหม่
+              </button>
+            </div>
+
+            <!-- Popover/Modal for Stroke Order directly in DJT -->
+            <div id="djt-stroke-modal" class="hidden mt-6 pt-5 border-t border-sumi-100 bg-sumi-50/70 rounded-2xl p-4 transition-all">
+              <div class="flex items-center justify-between mb-3">
+                <div class="text-xs font-bold text-sumi-800 font-thai flex items-center gap-1.5">
+                  <span>🖌️ ลำดับการลากเส้น KanjiVG:</span>
+                  <span id="djt-stroke-modal-title" class="text-indigo-600 font-mono font-bold"></span>
+                </div>
+                <button type="button" onclick="toggleDjtStrokeModal(false)" class="text-sumi-400 hover:text-sumi-700 text-xs px-2 py-1 rounded-lg hover:bg-sumi-200 font-thai">✕ ปิด</button>
+              </div>
+              <div id="djt-stroke-modal-content" class="flex flex-wrap items-center justify-center gap-4">
+                <!-- SVG Canvas or numbered path populated dynamically -->
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- RESULT SUMMARY SCREEN -->
+        <div id="djt-result-screen" class="hidden bg-white rounded-3xl p-6 sm:p-10 border border-sumi-200 shadow-soft text-center">
+          <div class="text-5xl mb-2">🏆</div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-sumi-900 font-thai">สรุปผลการฝึกพิมพ์ DJT Kana</h2>
+          <p id="djt-result-rating" class="text-sm font-semibold text-indigo-600 font-thai mt-1">ยอดเยี่ยมมาก! ปฏิกิริยาสะท้อนกลับไวมาก</p>
+
+          <!-- Score Metrics Grid -->
+          <div class="my-6 p-6 rounded-3xl bg-sumi-50 border border-sumi-200 max-w-lg mx-auto grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+            <div>
+              <div class="text-[11px] text-sumi-500 font-thai">ความแม่นยำ</div>
+              <div id="djt-result-acc" class="text-2xl sm:text-3xl font-extrabold text-emerald-600 font-mono mt-1">100%</div>
+            </div>
+            <div>
+              <div class="text-[11px] text-sumi-500 font-thai">ความเร็ว CPM</div>
+              <div id="djt-result-cpm" class="text-2xl sm:text-3xl font-extrabold text-indigo-600 font-mono mt-1">52</div>
+            </div>
+            <div>
+              <div class="text-[11px] text-sumi-500 font-thai">Max Streak 🔥</div>
+              <div id="djt-result-streak" class="text-2xl sm:text-3xl font-extrabold text-amber-500 font-mono mt-1">25</div>
+            </div>
+            <div>
+              <div class="text-[11px] text-sumi-500 font-thai">จำนวนที่ฝึก</div>
+              <div id="djt-result-total" class="text-2xl sm:text-3xl font-extrabold text-sumi-800 font-mono mt-1">46</div>
+            </div>
+          </div>
+
+          <!-- Mistakes List -->
+          <div id="djt-mistakes-wrapper" class="text-left max-w-lg mx-auto mt-6 hidden">
+            <h4 class="text-xs font-bold text-rose-600 uppercase tracking-wider font-thai mb-2 flex items-center justify-between">
+              <span>ตัวอักษรที่พิมพ์ผิดในรอบนี้:</span>
+              <button onclick="startDjtMistakesOnly()" class="text-indigo-600 hover:underline text-xs normal-case font-thai font-semibold">🔄 ฝึกเฉพาะตัวที่ตอบผิดซ้ำ</button>
+            </h4>
+            <div id="djt-mistakes-list" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1"></div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-wrap items-center justify-center gap-3 mt-8">
+            <button onclick="startDjtDrill()" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-fuji text-white font-thai font-bold text-sm shadow-md hover:from-indigo-700 hover:to-indigo-800 active:scale-95 transition-all">
+              🔄 ฝึกรอบใหม่อีกครั้ง
+            </button>
+            <button onclick="showDjtSetup()" class="px-5 py-3 rounded-2xl border border-sumi-200 text-sumi-700 font-thai font-medium text-sm hover:bg-sumi-100 transition-colors">
+              ⚙️ ปรับเลือกวรรคใหม่
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 3: FLASHCARDS SYSTEM (LEITNER ACTIVE RECALL) -->
+    <!-- ========================================================================= -->
+    <section id="tab-flashcards" class="tab-pane hidden">
+      <div class="max-w-3xl mx-auto">
+        
+        <!-- Header & Deck Selection -->
+        <div class="text-center mb-6">
+          <span class="text-xs font-bold text-sakura-600 uppercase tracking-wider font-thai">ระบบบัตรคำจำแม่น (Active Recall)</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-sumi-900 font-thai mt-1">แฟลชการ์ดฝึกจำเสียงคานะ</h2>
+          <p class="text-xs sm:text-sm text-sumi-500 font-thai mt-1">แตะที่การ์ดเพื่อพลิกดูคำอ่านและเสียง จากนั้นประเมินความแม่นยำของตนเอง</p>
+        </div>
+
+        <!-- Filter Deck Bar -->
+        <div class="bg-white rounded-2xl p-4 border border-sumi-200 shadow-soft mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs text-sumi-500 font-thai font-medium">ชุดการ์ด:</span>
+            <button onclick="setFlashcardDeck('hiragana-basic')" id="fc-deck-hira" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-sakura-600 text-white shadow-sm transition-all">ฮิรางานะ 46</button>
+            <button onclick="setFlashcardDeck('katakana-basic')" id="fc-deck-kata" class="px-3 py-1.5 rounded-xl text-xs font-medium text-sumi-600 bg-sumi-100 hover:bg-sumi-200 transition-all">คาตาคานะ 46</button>
+            <button onclick="setFlashcardDeck('dakuon')" id="fc-deck-dakuon" class="px-3 py-1.5 rounded-xl text-xs font-medium text-sumi-600 bg-sumi-100 hover:bg-sumi-200 transition-all">เสียงขุ่น/ควบ</button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="shuffleFlashcards()" title="สลับลำดับการ์ด" class="p-2 rounded-xl border border-sumi-200 text-sumi-600 hover:text-sakura-600 hover:bg-sakura-50 transition-colors flex items-center gap-1.5 text-xs font-thai font-medium">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+              <span>สลับการ์ด (Shuffle)</span>
+            </button>
+            <button onclick="resetFlashcards()" title="เริ่มทบทวนใหม่" class="p-2 text-sumi-400 hover:text-sumi-700 rounded-xl transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Progress Tracker Stats (Responsive 2x2 on mobile, 4 cols on desktop) -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 mb-6 text-center">
+          <div class="bg-white p-3 rounded-2xl border border-sumi-200 shadow-2xs">
+            <div class="text-[11px] text-sumi-500 font-thai">การ์ดที่</div>
+            <div id="fc-stat-current" class="text-lg font-bold text-sumi-800">1 / 46</div>
+          </div>
+          <div class="bg-emerald-50 p-3 rounded-2xl border border-emerald-200">
+            <div class="text-[11px] text-emerald-700 font-thai">จำได้แม่นแล้ว</div>
+            <div id="fc-stat-mastered" class="text-lg font-bold text-emerald-600">0</div>
+          </div>
+          <div class="bg-rose-50 p-3 rounded-2xl border border-rose-200">
+            <div class="text-[11px] text-rose-700 font-thai">ต้องทบทวน</div>
+            <div id="fc-stat-review" class="text-lg font-bold text-rose-600">0</div>
+          </div>
+          <div class="bg-indigo-50 p-3 rounded-2xl border border-indigo-200">
+            <div class="text-[11px] text-indigo-700 font-thai">เหลืออีก</div>
+            <div id="fc-stat-remaining" class="text-lg font-bold text-indigo-600">46</div>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full bg-sumi-200 h-2 rounded-full overflow-hidden mb-6">
+          <div id="fc-progress-bar" class="bg-gradient-to-r from-sakura-500 to-matcha-500 h-full w-0 transition-all duration-300"></div>
+        </div>
+
+        <!-- 3D Interactive Flip Card -->
+        <div class="perspective-1000 w-full max-w-md mx-auto aspect-[4/3] sm:aspect-[16/11] cursor-pointer" onclick="flipFlashcard()">
+          <div id="flashcard-inner" class="flip-card-inner">
+            
+            <!-- FRONT SIDE -->
+            <div class="flip-card-front bg-gradient-to-br from-white via-sakura-50/30 to-white border-2 border-sakura-200 shadow-card flex flex-col items-center justify-between p-6 sm:p-8">
+              <div class="w-full flex items-center justify-between text-xs text-sumi-400 font-thai">
+                <span id="fc-front-tag" class="px-2.5 py-0.5 rounded-full bg-sakura-100 text-sakura-700 font-semibold">ฮิรางานะ</span>
+                <span>แตะการ์ดเพื่อดูคำอ่าน ↺</span>
+              </div>
+
+              <div class="my-auto text-center">
+                <div id="fc-front-char" class="font-jp font-black text-8xl sm:text-9xl text-sumi-900 select-none">
+                  あ
+                </div>
+                <div class="text-xs text-sumi-400 mt-2 font-thai">กด Spacebar หรือแตะเพื่อพลิก</div>
+              </div>
+
+              <div class="text-xs text-sumi-400 font-thai flex items-center gap-1">
+                <span>🔊 แตะที่การ์ดเพื่อพลิกและฟังเสียง</span>
+              </div>
+            </div>
+
+            <!-- BACK SIDE -->
+            <div class="flip-card-back bg-gradient-to-br from-white via-matcha-50/40 to-white border-2 border-matcha-300 shadow-card flex flex-col items-center justify-between p-6 sm:p-8">
+              <div class="w-full flex items-center justify-between text-xs text-sumi-400 font-thai">
+                <span class="px-2.5 py-0.5 rounded-full bg-matcha-100 text-matcha-700 font-semibold font-thai">เฉลยคำอ่าน</span>
+                <span>แตะการ์ดเพื่อพลิกกลับ ↺</span>
+              </div>
+
+              <div class="my-auto text-center">
+                <div id="fc-back-char" class="font-jp font-black text-6xl text-sumi-900 select-none mb-1">
+                  あ
+                </div>
+                <div id="fc-back-romaji" class="text-3xl sm:text-4xl font-mono font-extrabold text-sumi-900 tracking-wider">
+                  a
+                </div>
+                <div id="fc-back-thai" class="text-lg font-bold text-sakura-600 font-thai mt-1">
+                  อะ (เสียงสั้น)
+                </div>
+
+                <!-- Example Context -->
+                <div class="mt-4 px-4 py-2 rounded-xl bg-white/80 border border-matcha-200 text-xs font-thai flex items-center gap-2">
+                  <span class="font-jp font-bold text-sumi-800" id="fc-back-word-jp">朝 (あさ)</span>
+                  <span class="text-sumi-500 font-mono" id="fc-back-word-ro">asa</span>
+                  <span class="text-matcha-700 font-medium" id="fc-back-word-th">= ตอนเช้า</span>
+                </div>
+              </div>
+
+              <!-- Pronounce Audio Trigger -->
+              <button onclick="event.stopPropagation(); speakFlashcardAudio();" class="px-4 py-1.5 rounded-full bg-matcha-600 text-white text-xs font-thai font-medium flex items-center gap-1.5 hover:bg-matcha-700 transition-colors shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                <span>ฟังการออกเสียง</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- User Feedback Action Buttons (Leitner Choice) -->
+        <div class="max-w-md mx-auto grid grid-cols-2 gap-3 mt-6">
+          <button onclick="recordFlashcard(false)" class="py-3 px-4 rounded-2xl border-2 border-rose-200 bg-rose-50 text-rose-700 font-thai font-bold text-sm hover:bg-rose-100 active:scale-95 transition-all flex items-center justify-center gap-2 shadow-sm">
+            <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            <span>จำไม่ได้ (Need Review)</span>
+          </button>
+          <button onclick="recordFlashcard(true)" class="py-3 px-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50 text-emerald-700 font-thai font-bold text-sm hover:bg-emerald-100 active:scale-95 transition-all flex items-center justify-center gap-2 shadow-sm">
+            <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            <span>จำได้แม่นแล้ว (Got It!)</span>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 4: SPEED QUIZ DRILL (TIMED MULTIPLE CHOICE) -->
+    <!-- ========================================================================= -->
+    <section id="tab-quiz" class="tab-pane hidden">
+      <div class="max-w-2xl mx-auto">
+        
+        <!-- QUIZ START SCREEN -->
+        <div id="quiz-start-screen" class="bg-white rounded-3xl p-6 sm:p-10 border border-sumi-200 shadow-soft text-center">
+          <div class="w-16 h-16 rounded-3xl bg-gradient-to-tr from-amber-400 to-amber-500 text-white flex items-center justify-center font-bold text-3xl mx-auto shadow-lg shadow-amber-500/20 mb-4">
+            ⚡
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-sumi-900 font-thai">สปีดควิซทดสอบความจำ</h2>
+          <p class="text-xs sm:text-sm text-sumi-500 font-thai mt-2 max-w-md mx-auto">
+            วัดระดับความเร็วและความแม่นยำในการจำตัวอักษรญี่ปุ่น 10 ข้อจับเวลา ตอบให้เร็วที่สุดเพื่อรับคะแนนระดับเซียน!
+          </p>
+
+          <!-- Quiz Setup Options -->
+          <div class="max-w-sm mx-auto mt-6 space-y-3 text-left">
+            <div>
+              <label class="text-xs font-semibold text-sumi-700 font-thai block mb-1.5">ชุดตัวอักษรที่ต้องการทดสอบ:</label>
+              <select id="quiz-charset" class="w-full bg-sumi-50 border border-sumi-200 rounded-xl px-3.5 py-2 text-xs font-thai text-sumi-800 focus:outline-none focus:ring-2 focus:ring-amber-400">
+                <option value="hiragana">ฮิรางานะ 46 ตัวพื้นฐาน (Hiragana Basic)</option>
+                <option value="katakana">คาตาคานะ 46 ตัวพื้นฐาน (Katakana Basic)</option>
+                <option value="mixed">ผสมทั้งฮิรางานะและคาตาคานะ (Mixed All)</option>
+                <option value="dakuon">เสียงขุ่นและเสียงควบ (Dakuon & Yoon)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="text-xs font-semibold text-sumi-700 font-thai block mb-1.5">รูปแบบคำถาม:</label>
+              <select id="quiz-mode" class="w-full bg-sumi-50 border border-sumi-200 rounded-xl px-3.5 py-2 text-xs font-thai text-sumi-800 focus:outline-none focus:ring-2 focus:ring-amber-400">
+                <option value="kana-to-sound">เห็นตัวอักษร -> เลือกเสียงอ่าน (Romaji/Thai)</option>
+                <option value="sound-to-kana">เห็นเสียงอ่าน -> เลือกตัวอักษร (Kana)</option>
+                <option value="audio-to-kana">ฟังเสียงพูด -> เลือกตัวอักษรที่ได้ยิน (Listening)</option>
+              </select>
+            </div>
+          </div>
+
+          <button onclick="startQuiz()" class="mt-8 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-thai font-bold text-base shadow-md shadow-amber-500/25 hover:from-amber-600 hover:to-amber-700 active:scale-95 transition-all">
+            🚀 เริ่มทำแบบทดสอบ (10 ข้อ)
+          </button>
+        </div>
+
+        <!-- ACTIVE QUIZ DRILL SCREEN -->
+        <div id="quiz-active-screen" class="hidden bg-white rounded-3xl p-6 sm:p-8 border border-sumi-200 shadow-soft">
+          <!-- Quiz Top Status Bar -->
+          <div class="flex items-center justify-between pb-4 border-b border-sumi-100">
+            <div class="flex items-center gap-2">
+              <span id="quiz-q-counter" class="text-xs font-bold text-sumi-500 font-mono uppercase">ข้อที่ 1 / 10</span>
+              <span id="quiz-score-live" class="text-xs font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600">คะแนน: 0</span>
+            </div>
+            <!-- Timer countdown -->
+            <div class="flex items-center gap-1.5 font-mono text-xs font-bold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-xl">
+              <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span id="quiz-timer-text">10s</span>
+            </div>
+          </div>
+
+          <!-- Timer Bar -->
+          <div class="w-full bg-sumi-100 h-1.5 rounded-full overflow-hidden mt-2 mb-6">
+            <div id="quiz-timer-bar" class="bg-amber-400 h-full w-full transition-all duration-100 ease-linear"></div>
+          </div>
+
+          <!-- Question Prompt Display -->
+          <div class="text-center py-6 sm:py-8">
+            <div id="quiz-question-type-hint" class="text-xs text-sumi-400 font-thai mb-2">ตัวอักษรนี้อ่านออกเสียงว่าอย่างไร?</div>
+            
+            <div id="quiz-prompt-box" class="min-h-[120px] flex items-center justify-center">
+              <span id="quiz-prompt-text" class="font-jp font-black text-7xl sm:text-8xl text-sumi-900">あ</span>
+            </div>
+
+            <!-- Audio Replay Trigger (for Listening Mode) -->
+            <div id="quiz-audio-btn-wrapper" class="hidden mt-2">
+              <button onclick="playQuizAudioPrompt()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sakura-50 text-sakura-600 font-thai text-xs font-semibold hover:bg-sakura-100 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+                <span>กดฟังเสียงซ้ำ</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Multiple Choice Options (4 Choices) -->
+          <div id="quiz-options-grid" class="grid grid-cols-2 gap-3 sm:gap-4 mt-4">
+            <button onclick="selectQuizChoice(0)" id="quiz-btn-0" class="quiz-btn p-4 rounded-2xl border-2 border-sumi-200 hover:border-amber-400 hover:bg-amber-50/50 text-center font-bold text-lg text-sumi-800 transition-all active:scale-98">A</button>
+            <button onclick="selectQuizChoice(1)" id="quiz-btn-1" class="quiz-btn p-4 rounded-2xl border-2 border-sumi-200 hover:border-amber-400 hover:bg-amber-50/50 text-center font-bold text-lg text-sumi-800 transition-all active:scale-98">B</button>
+            <button onclick="selectQuizChoice(2)" id="quiz-btn-2" class="quiz-btn p-4 rounded-2xl border-2 border-sumi-200 hover:border-amber-400 hover:bg-amber-50/50 text-center font-bold text-lg text-sumi-800 transition-all active:scale-98">C</button>
+            <button onclick="selectQuizChoice(3)" id="quiz-btn-3" class="quiz-btn p-4 rounded-2xl border-2 border-sumi-200 hover:border-amber-400 hover:bg-amber-50/50 text-center font-bold text-lg text-sumi-800 transition-all active:scale-98">D</button>
+          </div>
+        </div>
+
+        <!-- QUIZ SCORE & SUMMARY SCREEN -->
+        <div id="quiz-result-screen" class="hidden bg-white rounded-3xl p-6 sm:p-10 border border-sumi-200 shadow-soft text-center">
+          <div id="quiz-badge-icon" class="text-5xl mb-2">🎉</div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-sumi-900 font-thai">สรุปผลการทดสอบ</h2>
+          <p id="quiz-rating-text" class="text-sm font-semibold text-emerald-600 font-thai mt-1">ยอดเยี่ยมมาก! ระดับเซียนภาษาญี่ปุ่น 🎌</p>
+
+          <!-- Score Card -->
+          <div class="my-6 p-6 rounded-3xl bg-sumi-50 border border-sumi-200/80 max-w-sm mx-auto flex items-center justify-around">
+            <div>
+              <div class="text-xs text-sumi-500 font-thai">คะแนนที่ได้</div>
+              <div class="text-3xl sm:text-4xl font-extrabold text-sumi-900 mt-1">
+                <span id="quiz-final-score" class="text-sakura-600">10</span><span class="text-sumi-400 text-xl font-normal"> / 10</span>
+              </div>
+            </div>
+            <div class="h-10 w-px bg-sumi-200"></div>
+            <div>
+              <div class="text-xs text-sumi-500 font-thai">ความแม่นยำ</div>
+              <div id="quiz-final-accuracy" class="text-3xl sm:text-4xl font-extrabold text-emerald-600 mt-1">100%</div>
+            </div>
+          </div>
+
+          <!-- Review Mistakes List -->
+          <div id="quiz-mistakes-wrapper" class="text-left mt-6 hidden">
+            <h4 class="text-xs font-bold text-rose-600 uppercase tracking-wider font-thai mb-2">ข้อที่ตอบผิดและควรทบทวน:</h4>
+            <div id="quiz-mistakes-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+          </div>
+
+          <div class="flex items-center justify-center gap-3 mt-8">
+            <button onclick="restartQuiz()" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-sakura-500 to-sakura-600 text-white font-thai font-bold text-sm shadow-md hover:from-sakura-600 hover:to-sakura-700 active:scale-95 transition-all">
+              🔄 เล่นใหม่อีกครั้ง
+            </button>
+            <button onclick="switchTab('chart')" class="px-5 py-3 rounded-2xl border border-sumi-200 text-sumi-700 font-thai font-medium text-sm hover:bg-sumi-100 transition-colors">
+              กลับไปดูตารางคานะ
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 5: ESSENTIAL N5 & ANIME VOCABULARY BANK -->
+    <!-- ========================================================================= -->
+    <section id="tab-vocab" class="tab-pane hidden">
+      
+      <!-- Vocab Header & Filter Controls -->
+      <div class="bg-gradient-to-br from-white via-matcha-50/30 to-white rounded-3xl p-6 sm:p-8 border border-matcha-200/80 shadow-soft mb-8">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 text-matcha-700 text-xs sm:text-sm font-semibold tracking-wide uppercase mb-1">
+              <span>🌸 คลังคำศัพท์ระดับเริ่มต้น & วลีฮิตอนิเมะ</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-sumi-900 font-thai">
+              คลังคำศัพท์ N5 & Anime Vocabulary Bank
+            </h2>
+            <p class="text-xs sm:text-sm text-sumi-600 font-thai mt-1 max-w-xl">
+              คัดสรรคำศัพท์พื้นฐานสอบวัดระดับ JLPT N5 และประโยคที่พบบ่อยในอนิเมะญี่ปุ่น พร้อมคำแปลไทย ฟุริงะนะ และเสียงอ่านต้นฉบับ
+            </p>
+          </div>
+
+          <!-- Vocab Search Bar -->
+          <div class="relative w-full lg:w-80">
+            <input type="text" id="vocabSearch" oninput="filterVocabList()" placeholder="ค้นหาคำศัพท์ ภาษาไทย หรือโรมาจิ..." class="w-full pl-9 pr-4 py-2.5 bg-white border border-sumi-200 rounded-xl text-xs font-thai focus:outline-none focus:ring-2 focus:ring-matcha-400 focus:border-transparent transition-all">
+            <svg class="w-4 h-4 text-sumi-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Vocab Category Tag Filters -->
+        <div class="mt-6 pt-5 border-t border-matcha-100 flex flex-wrap gap-2">
+          <button onclick="setVocabCategory('all')" id="vc-all" class="vc-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-matcha-600 text-white shadow-sm transition-all">
+            ทั้งหมด (All)
+          </button>
+          <button onclick="setVocabCategory('anime')" id="vc-anime" class="vc-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-white text-sumi-600 border border-sumi-200 hover:bg-matcha-50 transition-all">
+            🌸 วลียอดฮิตอนิเมะ
+          </button>
+          <button onclick="setVocabCategory('greetings')" id="vc-greetings" class="vc-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-white text-sumi-600 border border-sumi-200 hover:bg-matcha-50 transition-all">
+            👋 ทักทาย & มารยาท
+          </button>
+          <button onclick="setVocabCategory('daily')" id="vc-daily" class="vc-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-white text-sumi-600 border border-sumi-200 hover:bg-matcha-50 transition-all">
+            🏫 N5 ชีวิตประจำวัน
+          </button>
+          <button onclick="setVocabCategory('food')" id="vc-food" class="vc-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-white text-sumi-600 border border-sumi-200 hover:bg-matcha-50 transition-all">
+            🍱 อาหาร & เครื่องดื่ม
+          </button>
+          <button onclick="setVocabCategory('verbs')" id="vc-verbs" class="vc-btn px-3.5 py-1.5 rounded-xl text-xs font-medium bg-white text-sumi-600 border border-sumi-200 hover:bg-matcha-50 transition-all">
+            🚶 คำกริยา N5
+          </button>
+        </div>
+      </div>
+
+      <!-- Vocab Count and Grid -->
+      <div class="flex items-center justify-between px-2 mb-4 text-xs text-sumi-500 font-thai">
+        <span>คลิกปุ่มลำโพง 🔊 เพื่อฟังสำเนียงภาษาญี่ปุ่น</span>
+        <span id="vocab-count-badge" class="font-medium text-sumi-600">แสดง 26 คำ</span>
+      </div>
+
+      <div id="vocab-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 6: 4-WEEK STUDY ROADMAP & TRACKER -->
+    <!-- ========================================================================= -->
+    <section id="tab-roadmap" class="tab-pane hidden">
+      <div class="max-w-4xl mx-auto">
+        
+        <!-- Roadmap Header & Global Progress -->
+        <div class="bg-gradient-to-br from-white via-indigo-50/20 to-white rounded-3xl p-6 sm:p-8 border border-indigo-100 shadow-soft mb-8">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <span class="text-xs font-bold text-fuji uppercase tracking-wider font-thai">แผนการเรียนภาษาญี่ปุ่น 28 วัน</span>
+              <h2 class="text-2xl sm:text-3xl font-extrabold text-sumi-900 font-thai mt-1">
+                4-Week Study Roadmap & Tracker
+              </h2>
+              <p class="text-xs sm:text-sm text-sumi-500 font-thai mt-1">
+                บันทึกความคืบหน้ารายวัน ข้อมูลจะถูกบันทึกในเครื่องของคุณโดยอัตโนมัติ (LocalStorage)
+              </p>
+            </div>
+
+            <!-- Progress Circle/Box -->
+            <div class="p-4 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center gap-4 self-start sm:self-center">
+              <div>
+                <div class="text-[11px] font-bold uppercase tracking-wider text-indigo-700 font-thai">ความคืบหน้ารวม</div>
+                <div id="roadmap-percent" class="text-2xl font-black text-fuji font-mono">0%</div>
+              </div>
+              <div class="text-3xl">🎯</div>
+            </div>
+          </div>
+
+          <!-- Overall Progress Bar -->
+          <div class="mt-6">
+            <div class="w-full bg-sumi-100 h-2.5 rounded-full overflow-hidden">
+              <div id="roadmap-progress-bar" class="bg-gradient-to-r from-fuji via-sakura-500 to-matcha-500 h-full w-0 transition-all duration-500"></div>
+            </div>
+            <div class="flex justify-between items-center text-[11px] text-sumi-400 font-thai mt-2">
+              <span id="roadmap-tasks-completed">สำเร็จแล้ว 0 / 28 บทเรียน</span>
+              <button onclick="resetRoadmapProgress()" class="text-sumi-400 hover:text-torii underline transition-colors">
+                รีเซ็ตความคืบหน้า
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Weeks Timeline Accordions / Cards -->
+        <div class="space-y-6">
+          
+          <!-- WEEK 1 -->
+          <div class="bg-white rounded-3xl p-6 border border-sumi-200 shadow-soft">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-sumi-100">
+              <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-xl bg-sakura-100 text-sakura-700 flex items-center justify-center font-bold text-sm">W1</span>
+                <div>
+                  <h3 class="font-bold text-base text-sumi-900 font-thai">สัปดาห์ที่ 1: ฮิรางานะพื้นฐาน 46 ตัว (Basic Hiragana)</h3>
+                  <p class="text-xs text-sumi-500 font-thai">เป้าหมาย: จำและคัดอักษรฮิรางานะ 46 ตัวแรกได้แม่นยำ</p>
+                </div>
+              </div>
+              <span id="w1-count" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-sumi-100 text-sumi-600 font-thai">0/7 วัน</span>
+            </div>
+
+            <div class="space-y-2.5" id="roadmap-w1-list">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <!-- WEEK 2 -->
+          <div class="bg-white rounded-3xl p-6 border border-sumi-200 shadow-soft">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-sumi-100">
+              <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-xl bg-matcha-100 text-matcha-700 flex items-center justify-center font-bold text-sm">W2</span>
+                <div>
+                  <h3 class="font-bold text-base text-sumi-900 font-thai">สัปดาห์ที่ 2: เสียงขุ่น เสียงควบ และการผสมเสียง (Dakuon & Yoon)</h3>
+                  <p class="text-xs text-sumi-500 font-thai">เป้าหมาย: อ่านกฎเสียงกัก (っ), เสียงยาว และคำควบกล้ำได้อย่างคล่องแคล่ว</p>
+                </div>
+              </div>
+              <span id="w2-count" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-sumi-100 text-sumi-600 font-thai">0/7 วัน</span>
+            </div>
+
+            <div class="space-y-2.5" id="roadmap-w2-list">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <!-- WEEK 3 -->
+          <div class="bg-white rounded-3xl p-6 border border-sumi-200 shadow-soft">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-sumi-100">
+              <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-sm">W3</span>
+                <div>
+                  <h3 class="font-bold text-base text-sumi-900 font-thai">สัปดาห์ที่ 3: คาตาคานะและคำยืมภาษาต่างประเทศ (Katakana & Tokushuon)</h3>
+                  <p class="text-xs text-sumi-500 font-thai">เป้าหมาย: คัดตัวคาตาคานะและอ่านเมนูอาหาร ป้ายชื่อ และคำทับศัพท์สากลได้</p>
+                </div>
+              </div>
+              <span id="w3-count" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-sumi-100 text-sumi-600 font-thai">0/7 วัน</span>
+            </div>
+
+            <div class="space-y-2.5" id="roadmap-w3-list">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+          <!-- WEEK 4 -->
+          <div class="bg-white rounded-3xl p-6 border border-sumi-200 shadow-soft">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-sumi-100">
+              <div class="flex items-center gap-3">
+                <span class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">W4</span>
+                <div>
+                  <h3 class="font-bold text-base text-sumi-900 font-thai">สัปดาห์ที่ 4: ก้าวแรกสู่ Minna no Nihongo & ไวยากรณ์ N5</h3>
+                  <p class="text-xs text-sumi-500 font-thai">เป้าหมาย: แต่งประโยคบอกเล่า ปฏิเสธ คำถาม และคำช่วยพื้นฐาน は, も, の</p>
+                </div>
+              </div>
+              <span id="w4-count" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-sumi-100 text-sumi-600 font-thai">0/7 วัน</span>
+            </div>
+
+            <div class="space-y-2.5" id="roadmap-w4-list">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Global Audio Notification Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none px-4 py-2.5 rounded-2xl bg-sumi-900 text-white text-xs font-thai shadow-float flex items-center gap-2">
+    <span id="toast-icon">🔊</span>
+    <span id="toast-msg">กำลังเล่นเสียง...</span>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-auto border-t border-sumi-200/80 bg-white py-6 text-center text-xs text-sumi-500 font-thai">
+    <div class="max-w-[1536px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="font-jp font-bold text-sumi-800">にほんごマスター</span>
+        <span>— Nihongo Master Web App</span>
+      </div>
+      <div>
+        <span>ออกแบบสไตล์ Japanese Zen & Pastel Minimalist | อ้างอิงเวกเตอร์ลำดับขีด KanjiVG มาตรฐาน 100%</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- External JavaScript Modules -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
